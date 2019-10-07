@@ -1,0 +1,77 @@
+# Copyright (C) 2018 Swift Navigation Inc.
+# Contact: Swift Navigation <dev@swiftnav.com>
+#
+# LSN Travis Build File.
+
+# **********************************************************************
+# PROJECT SETUP
+# **********************************************************************
+
+# Travis does not yet fully support bionic, so we need to keep it at Xenial until fixed.
+dist:  xenial
+sudo:  false
+group: stable
+
+language: c
+
+cache:
+  apt: true
+  directories:
+
+# **********************************************************************
+# BUILD MATRIX:
+# **********************************************************************
+matrix:
+  # Non-critical matrix entries will not block build completion.
+  fast_finish: true
+
+  # Enumerate all builds and their dependencies.
+  include:
+    # ------------------------------------------------------------------
+    # Unit and integration test builds with GCC.
+    # ------------------------------------------------------------------
+
+    # GCC 4.8 / Unit Test.
+    # Support for older compilers is required due to need to build Python
+    # extensions for Python 2.7
+    - env: TEST_SUITE=unit CXX=g++-4.8
+      compiler: gcc-4.8
+      addons: { apt: { packages: ["cmake",
+                                  "gcc-4.8",
+                                  "g++-4.8",
+                                  "check"],
+                       sources: ["ubuntu-toolchain-r-test"] } }
+
+    # GCC 6 / Unit Test.
+    - env: TEST_SUITE=unit
+      compiler: gcc-6
+      addons: { apt: { packages: ["cmake",
+                                  "gcc-6",
+                                  "g++-6",
+                                  "check"],
+                       sources: ["ubuntu-toolchain-r-test"] } }
+
+    # ------------------------------------------------------------------
+    # Lint and check compilation builds with Clang
+    # ------------------------------------------------------------------
+    # CLANG / Lint
+    - env: TEST_SUITE=lint
+      compiler: clang-6.0
+      addons: { apt: { packages: ["cmake",
+                                  "clang-6.0",
+                                  "clang-format-6.0",
+                                  "clang-tidy-6.0",
+                                  "libc++-dev",
+                                  "libc++abi-dev"] } }
+
+    - os: osx
+      osx_image: xcode10.1
+
+# **********************************************************************
+# INSTALL AND BUILD STEPS:
+# **********************************************************************
+
+# Build is handled by a shell script.
+script:
+  - bash ./travis.sh
+  

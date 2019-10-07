@@ -1,0 +1,6 @@
+[submodule "c/cmake"]
+	path = c/cmake
+	url = git@github.com:swift-nav/cmake.git
+[submodule "c/third_party/libswiftnav"]
+	path = c/third_party/libswiftnav
+	url = git@github.com:swift-nav/libswiftnav.git
