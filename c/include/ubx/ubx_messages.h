@@ -19,7 +19,7 @@
 #include <ubx/constants.h>
 
 /* return codes for the decoders */
-typedef enum rtcm3_rc_e {
+typedef enum ubx_rc_e {
   RC_OK = 0,
   RC_MESSAGE_TYPE_MISMATCH = -1,
   RC_INVALID_MESSAGE = -2
@@ -48,5 +48,79 @@ typedef struct {
   uint32_t doppler_std_hz[MAX_NUM_SATS];
   uint32_t track_state[MAX_NUM_SATS];
 } ubx_rawx;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint8_t msg_type;
+  uint8_t version;
+  uint8_t sat_id;
+  uint8_t reserved1;
+  uint8_t fit_interval;
+  uint8_t ura_index;
+  uint8_t sat_health;
+  int8_t tgd;
+  uint16_t iodc;
+  uint16_t toc;
+  uint8_t reserved2;
+  int8_t af2;
+  int16_t af1;
+  int32_t af0;
+  int16_t crs;
+  int16_t delta_N;
+  int32_t m0;
+  int16_t cuc;
+  int16_t cus;
+  uint32_t e;
+  uint32_t sqrt_A;
+  uint16_t toe;
+  int16_t cic;
+  int32_t omega0;
+  int16_t cis;
+  int16_t crc;
+  int32_t i0;
+  int32_t omega;
+  int32_t omega_dot;
+  int16_t i_dot;
+  uint8_t reserved3[2];
+} ubx_mga_gps_eph;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint32_t i_tow;
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+  uint8_t valid;
+  uint32_t time_accuracy;
+  int32_t nano;
+  uint8_t fix_type;
+  uint8_t flags;
+  uint8_t flags2;
+  uint8_t num_sats;
+  int32_t lon;
+  int32_t lat;
+  int32_t height;
+  int32_t height_mean_sea_level;
+  uint32_t horizontal_accuracy;
+  uint32_t vertical_accuracy;
+  int32_t vel_north;
+  int32_t vel_east;
+  int32_t vel_down;
+  int32_t ground_speed;
+  int32_t heading_of_motion;
+  uint32_t speed_acc;
+  uint32_t heading_acc;
+  uint16_t PDOP;
+  uint8_t flags3;
+  uint8_t reserved1[5];
+  int32_t heading_vehicle;
+  int16_t magnetic_declination;
+  uint16_t magnetic_declination_accuracy;
+} ubx_nav_pvt;
 
 #endif /* SWIFTNAV_UBX_MESSAGES_H */

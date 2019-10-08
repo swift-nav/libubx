@@ -26,6 +26,9 @@ extern "C" {
 #include <ubx/constants.h>
 
 uint16_t ubx_encode_rawx(const ubx_rawx *msg_rawx, uint8_t buff[]);
+uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]);
+uint16_t ubx_encode_mga_gps_eph(const ubx_mga_gps_eph *msg_gps_eph,
+                                uint8_t buff[]);
 
 #ifdef __cplusplus
 }
