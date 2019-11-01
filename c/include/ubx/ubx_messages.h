@@ -25,33 +25,43 @@ typedef enum ubx_rc_e {
   RC_INVALID_MESSAGE = -2
 } ubx_rc;
 
+#define UBX_CLASS_NAV 0x01
+#define UBX_MSG_NAV_PVT 0x07
+
+#define UBX_CLASS_RXM 0x02
+#define UBX_MSG_RXM_RAWX 0x15
+
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
+  uint16_t length;
   double rcv_tow;
   uint16_t rcv_wn;
   uint8_t leap_second;
   uint8_t num_meas;
   uint8_t rec_status;
   uint8_t version;
-  double pseudorange_m[MAX_NUM_SATS];
-  double carrier_phase_cycles[MAX_NUM_SATS];
-  float doppler_hz[MAX_NUM_SATS];
-  uint32_t gnss_id[MAX_NUM_SATS];
-  uint32_t sat_id[MAX_NUM_SATS];
-  uint32_t sig_id[MAX_NUM_SATS];
-  uint32_t freq_id[MAX_NUM_SATS];
-  uint32_t lock_time[MAX_NUM_SATS];
-  uint32_t cno_dbhz[MAX_NUM_SATS];
-  uint32_t pr_std_m[MAX_NUM_SATS];
-  uint32_t cp_std_cycles[MAX_NUM_SATS];
-  uint32_t doppler_std_hz[MAX_NUM_SATS];
-  uint32_t track_state[MAX_NUM_SATS];
-} ubx_rawx;
+  uint8_t reserved1[2];
+  double pseudorange_m[UBX_MAX_NUM_OBS];
+  double carrier_phase_cycles[UBX_MAX_NUM_OBS];
+  float doppler_hz[UBX_MAX_NUM_OBS];
+  uint8_t gnss_id[UBX_MAX_NUM_OBS];
+  uint8_t sat_id[UBX_MAX_NUM_OBS];
+  uint8_t sig_id[UBX_MAX_NUM_OBS];
+  uint8_t freq_id[UBX_MAX_NUM_OBS];
+  uint16_t lock_time[UBX_MAX_NUM_OBS];
+  uint8_t cno_dbhz[UBX_MAX_NUM_OBS];
+  uint8_t pr_std_m[UBX_MAX_NUM_OBS];
+  uint8_t cp_std_cycles[UBX_MAX_NUM_OBS];
+  uint8_t doppler_std_hz[UBX_MAX_NUM_OBS];
+  uint8_t track_state[UBX_MAX_NUM_OBS];
+  uint8_t reserved2[UBX_MAX_NUM_OBS];
+} ubx_rxm_rawx;
 
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
+  uint16_t length;
   uint8_t msg_type;
   uint8_t version;
   uint8_t sat_id;
@@ -88,6 +98,7 @@ typedef struct {
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
+  uint16_t length;
   uint32_t i_tow;
   uint16_t year;
   uint8_t month;
@@ -122,5 +133,20 @@ typedef struct {
   int16_t magnetic_declination;
   uint16_t magnetic_declination_accuracy;
 } ubx_nav_pvt;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint8_t gnss_id;
+  uint8_t sat_id;
+  uint8_t reserved1;
+  uint8_t freq_id;
+  uint8_t num_words;
+  uint8_t channel;
+  uint8_t version;
+  uint8_t reserved2;
+  uint32_t data_words[10];
+} ubx_rxm_sfrbx;
 
 #endif /* SWIFTNAV_UBX_MESSAGES_H */

@@ -20,10 +20,12 @@ extern "C" {
 #include <ubx/constants.h>
 #include <ubx/ubx_messages.h>
 
-ubx_rc ubx_decode_rawx(const uint8_t buff[], ubx_rawx *msg_rawx);
+void ubx_checksum(const uint8_t buff[], size_t length, uint8_t *checksum);
+ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx);
 ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt);
 ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],
                               ubx_mga_gps_eph *msg_mga_gps_eph);
+ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[], ubx_rxm_sfrbx *msg_rxm_sfrbx);
 
 #ifdef __cplusplus
 }

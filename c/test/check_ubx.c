@@ -25,7 +25,7 @@
 
 #define FLOAT_EPS 1e-6
 
-void msg_rawx_equals(const ubx_rawx *msg_in, const ubx_rawx *msg_out) {
+void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
   ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
   ck_assert(fabs(msg_in->rcv_tow - msg_out->rcv_tow) < FLOAT_EPS);
@@ -124,12 +124,28 @@ void msg_mga_gps_eph_equals(const ubx_mga_gps_eph *msg_in,
   ck_assert_int_eq(msg_in->i_dot, msg_out->i_dot);
 }
 
-START_TEST(test_ubx_rawx) {
+void msg_rxm_sfrbx_equals(const ubx_rxm_sfrbx *msg_in,
+                          const ubx_rxm_sfrbx *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->gnss_id, msg_out->gnss_id);
+  ck_assert_uint_eq(msg_in->sat_id, msg_out->sat_id);
+  ck_assert_uint_eq(msg_in->freq_id, msg_out->freq_id);
+  ck_assert_uint_eq(msg_in->num_words, msg_out->num_words);
+  ck_assert_uint_eq(msg_in->channel, msg_out->channel);
+  ck_assert_uint_eq(msg_in->version, msg_out->version);
+  for (int i = 0; i < 10; i++) {
+    ck_assert_uint_eq(msg_in->data_words[i], msg_out->data_words[i]);
+  }
+}
 
-  ubx_rawx msg;
+START_TEST(test_ubx_rxm_rawx) {
+
+  ubx_rxm_rawx msg;
 
   msg.class_id = 0x02;
   msg.msg_id = 0x15;
+  msg.length = 1;
   msg.rcv_tow = 415374000;
   msg.rcv_wn = 2015;
   msg.leap_second = 15;
@@ -183,8 +199,8 @@ START_TEST(test_ubx_rawx) {
   memset(buff, 0, 1024);
   ubx_encode_rawx(&msg, buff);
 
-  ubx_rawx msg_rawx_out;
-  int8_t ret = ubx_decode_rawx(buff, &msg_rawx_out);
+  ubx_rxm_rawx msg_rawx_out;
+  int8_t ret = ubx_decode_rxm_rawx(buff, &msg_rawx_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_rawx_equals(&msg, &msg_rawx_out);
 
@@ -293,13 +309,44 @@ START_TEST(test_ubx_nav_pvt) {
 
 END_TEST
 
+START_TEST(test_ubx_rxm_sfrbx) {
+
+  ubx_rxm_sfrbx msg;
+
+  msg.class_id = 0x02;
+  msg.msg_id = 0x13;
+  msg.gnss_id = 1;
+  msg.sat_id = 2;
+  msg.freq_id = 3;
+  msg.num_words = 10;
+  msg.channel = 4;
+  msg.version = 0x02;
+  for (int i = 0; i < 10; i++) {
+    msg.data_words[i] = 1 << i;
+  }
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ubx_encode_rxm_sfrbx(&msg, buff);
+
+  ubx_rxm_sfrbx msg_rxm_sfrbx_out;
+  int8_t ret = ubx_decode_rxm_sfrbx(buff, &msg_rxm_sfrbx_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_rxm_sfrbx_equals(&msg, &msg_rxm_sfrbx_out);
+
+  return;
+}
+
+END_TEST
+
 Suite *ubx_suite(void) {
   Suite *s = suite_create("ubx");
 
   TCase *tc_ubx = tcase_create("ubx");
-  tcase_add_test(tc_ubx, test_ubx_rawx);
+  tcase_add_test(tc_ubx, test_ubx_rxm_rawx);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
+  tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);
   suite_add_tcase(s, tc_ubx);
 
   return s;

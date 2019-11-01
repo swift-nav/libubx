@@ -13,6 +13,11 @@
 #ifndef SWIFTNAV_UBX_CONSTANTS_H
 #define SWIFTNAV_UBX_CONSTANTS_H
 
-#define MAX_NUM_SATS 255
+#include <swiftnav/signal.h>
+
+#define UBX_MAX_NUM_OBS 256
+
+#define UBX_SYNC_CHAR_1 0xB5
+#define UBX_SYNC_CHAR_2 0x62
 
 #endif /* SWIFTNAV_UBX_CONSTANTS_H */

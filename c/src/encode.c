@@ -15,9 +15,13 @@
  * would need to handle ambiguity rollover and code carrier divergance at least
  */
 
+#include <string.h>
+
 #include <ubx/encode.h>
 
 #include <swiftnav/bits.h>
+
+// UBX protocol is little-endian.
 
 /** Set bit field in buffer from an unsigned integer.
  * Packs `len` bits into bit position `pos` from the start of the buffer.
@@ -57,238 +61,292 @@ void ubx_setbitsl(uint8_t *buff, uint32_t pos, uint32_t len, int64_t data) {
   ubx_setbitul(buff, pos, len, (uint64_t)data);
 }
 
-/** Serialize the ubx_rawx message
+/** Serialize the ubx_rxm_rawx message
  *
  * \param buff outgoing data buffer
  * \param msg_rawx UBX rawx message to serialize
- * \return number of bits serialized
+ * \return number of bytes serialized
  */
-uint16_t ubx_encode_rawx(const ubx_rawx *msg_rawx, uint8_t buff[]) {
+uint16_t ubx_encode_rawx(const ubx_rxm_rawx *msg_rawx, uint8_t buff[]) {
   assert(msg_rawx);
 
-  uint16_t bit = 0;
-  setbitu(buff, bit, 8, msg_rawx->class_id);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_rawx->msg_id);
-  bit += 8;
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_rawx->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rawx->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rawx->length, 2);
+  index += 2;
 
-  ubx_setbitul(buff, bit, 64, *((int64_t *)&msg_rawx->rcv_tow));
-  bit += 64;
-  setbitu(buff, bit, 16, msg_rawx->rcv_wn);
-  bit += 16;
-  setbits(buff, bit, 16, msg_rawx->leap_second);
-  bit += 16;
-  setbitu(buff, bit, 8, msg_rawx->num_meas);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_rawx->rec_status);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_rawx->version);
-  bit += 8;
-  setbitu(buff, bit, 4, 0);
-  bit += 4;
+  memcpy(&buff[index], &msg_rawx->rcv_tow, 8);
+  index += 8;
+  memcpy(&buff[index], &msg_rawx->rcv_wn, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_rawx->leap_second, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rawx->num_meas, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rawx->rec_status, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rawx->version, 1);
+  index += 1;
+  /* reserved */
+  for (int i = 0; i < 2; i++) {
+    memcpy(&buff[index], &msg_rawx->reserved1[i], 1);
+    index += 1;
+  }
 
   for (int i = 0; i < msg_rawx->num_meas; i++) {
-    ubx_setbitul(buff, bit, 64, *((int64_t *)&msg_rawx->pseudorange_m[i]));
-    bit += 64;
-    ubx_setbitul(buff, bit, 64,
-                 *((int64_t *)&msg_rawx->carrier_phase_cycles[i]));
-    bit += 64;
-    setbitu(buff, bit, 32, *((int32_t *)&msg_rawx->doppler_hz[i]));
-    bit += 32;
-    setbitu(buff, bit, 8, msg_rawx->gnss_id[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->sat_id[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->sig_id[i]);
-    bit += 8;
-    setbits(buff, bit, 8, msg_rawx->freq_id[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->lock_time[i]);
-    bit += 8;
-    setbitu(buff, bit, 16, msg_rawx->cno_dbhz[i]);
-    bit += 16;
-    setbitu(buff, bit, 8, msg_rawx->pr_std_m[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->cp_std_cycles[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->doppler_std_hz[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, msg_rawx->track_state[i]);
-    bit += 8;
-    setbitu(buff, bit, 8, 0);
-    bit += 8;
+    memcpy(&buff[index], &msg_rawx->pseudorange_m[i], 8);
+    index += 8;
+    memcpy(&buff[index], &msg_rawx->carrier_phase_cycles[i], 8);
+    index += 8;
+    memcpy(&buff[index], &msg_rawx->doppler_hz[i], 4);
+    index += 4;
+    memcpy(&buff[index], &msg_rawx->gnss_id[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->sat_id[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->sig_id[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->freq_id[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->lock_time[i], 2);
+    index += 2;
+    memcpy(&buff[index], &msg_rawx->cno_dbhz[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->pr_std_m[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->cp_std_cycles[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->doppler_std_hz[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->track_state[i], 1);
+    index += 1;
+    memcpy(&buff[index], &msg_rawx->reserved2[i], 1);
+    index += 1;
   }
-  return bit;
+  return index;
 }
 
 /** Serialize the ubx_nav_pvt message
  *
  * \param buff outgoing data buffer
  * \param msg_nav_pvt UBX nav pvt message to serialize
- * \return number of bits serialized
+ * \return number of bytes serialized
  */
 uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]) {
   assert(msg_nav_pvt);
 
-  uint16_t bit = 0;
-  setbitu(buff, bit, 8, msg_nav_pvt->class_id);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->msg_id);
-  bit += 8;
-  setbitu(buff, bit, 32, msg_nav_pvt->i_tow);
-  bit += 32;
-  setbitu(buff, bit, 16, msg_nav_pvt->year);
-  bit += 16;
-  setbitu(buff, bit, 8, msg_nav_pvt->month);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->day);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->hour);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->min);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->sec);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->valid);
-  bit += 8;
-  setbitu(buff, bit, 32, msg_nav_pvt->time_accuracy);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->nano);
-  bit += 32;
-  setbitu(buff, bit, 8, msg_nav_pvt->fix_type);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->flags);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->flags2);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_nav_pvt->num_sats);
-  bit += 8;
-  setbits(buff, bit, 32, msg_nav_pvt->lon);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->lat);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->height);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->height_mean_sea_level);
-  bit += 32;
-  setbitu(buff, bit, 32, msg_nav_pvt->horizontal_accuracy);
-  bit += 32;
-  setbitu(buff, bit, 32, msg_nav_pvt->vertical_accuracy);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->vel_north);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->vel_east);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->vel_down);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->ground_speed);
-  bit += 32;
-  setbits(buff, bit, 32, msg_nav_pvt->heading_of_motion);
-  bit += 32;
-  setbitu(buff, bit, 32, msg_nav_pvt->speed_acc);
-  bit += 32;
-  setbitu(buff, bit, 32, msg_nav_pvt->heading_acc);
-  bit += 32;
-  setbitu(buff, bit, 16, msg_nav_pvt->PDOP);
-  bit += 16;
-  setbitu(buff, bit, 8, msg_nav_pvt->flags3);
-  bit += 8;
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_pvt->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_pvt->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->year, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_nav_pvt->month, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->day, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->hour, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->min, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->sec, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->valid, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->time_accuracy, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->nano, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->fix_type, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->flags, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->flags2, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->num_sats, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_pvt->lon, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->lat, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->height, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->height_mean_sea_level, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->horizontal_accuracy, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->vertical_accuracy, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->vel_north, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->vel_east, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->vel_down, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->ground_speed, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->heading_of_motion, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->speed_acc, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->heading_acc, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->PDOP, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_nav_pvt->flags3, 1);
+  index += 1;
   /* reserved */
   for (int i = 0; i < 5; i++) {
-    setbitu(buff, bit, 8, msg_nav_pvt->reserved1[i]);
-    bit += 8;
+    memcpy(&buff[index], &msg_nav_pvt->reserved1[i], 1);
+    index += 1;
   }
-  setbits(buff, bit, 32, msg_nav_pvt->heading_vehicle);
-  bit += 32;
-  setbits(buff, bit, 16, msg_nav_pvt->magnetic_declination);
-  bit += 16;
-  setbitu(buff, bit, 16, msg_nav_pvt->magnetic_declination_accuracy);
-  bit += 16;
-  return bit;
+  memcpy(&buff[index], &msg_nav_pvt->heading_vehicle, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_pvt->magnetic_declination, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_nav_pvt->magnetic_declination_accuracy, 2);
+  index += 2;
+  return index;
 }
 
 /** Serialize the ubx_mga_gps_eph message
  *
  * \param buff outgoing data buffer
  * \param msg_mga_gps_eph UBX gps eph message to serialize
- * \return number of bits serialized
+ * \return number of bytes serialized
  */
 uint16_t ubx_encode_mga_gps_eph(const ubx_mga_gps_eph *msg_mga_gps_eph,
                                 uint8_t buff[]) {
   assert(msg_mga_gps_eph);
 
-  uint16_t bit = 0;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->class_id);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->msg_id);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->msg_type);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->version);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->sat_id);
-  bit += 8;
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_mga_gps_eph->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->length, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->msg_type, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->version, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->sat_id, 1);
+  index += 1;
   /* reserved */
-  setbitu(buff, bit, 8, msg_mga_gps_eph->reserved1);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->fit_interval);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->ura_index);
-  bit += 8;
-  setbitu(buff, bit, 8, msg_mga_gps_eph->sat_health);
-  bit += 8;
-  setbits(buff, bit, 8, msg_mga_gps_eph->tgd);
-  bit += 8;
-  setbitu(buff, bit, 16, msg_mga_gps_eph->iodc);
-  bit += 16;
-  setbitu(buff, bit, 16, msg_mga_gps_eph->toc);
-  bit += 16;
+  memcpy(&buff[index], &msg_mga_gps_eph->reserved1, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->fit_interval, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->ura_index, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->sat_health, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->tgd, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->iodc, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->toc, 2);
+  index += 2;
   /* reserved */
-  setbitu(buff, bit, 8, msg_mga_gps_eph->reserved2);
-  bit += 8;
-  setbits(buff, bit, 8, msg_mga_gps_eph->af2);
-  bit += 8;
-  setbits(buff, bit, 16, msg_mga_gps_eph->af1);
-  bit += 16;
-  setbits(buff, bit, 32, msg_mga_gps_eph->af0);
-  bit += 32;
-  setbits(buff, bit, 16, msg_mga_gps_eph->crs);
-  bit += 16;
-  setbits(buff, bit, 16, msg_mga_gps_eph->delta_N);
-  bit += 16;
-  setbits(buff, bit, 32, msg_mga_gps_eph->m0);
-  bit += 32;
-  setbits(buff, bit, 16, msg_mga_gps_eph->cuc);
-  bit += 16;
-  setbits(buff, bit, 16, msg_mga_gps_eph->cus);
-  bit += 16;
-  setbitu(buff, bit, 32, msg_mga_gps_eph->e);
-  bit += 32;
-  setbitu(buff, bit, 32, msg_mga_gps_eph->sqrt_A);
-  bit += 32;
-  setbitu(buff, bit, 16, msg_mga_gps_eph->toe);
-  bit += 16;
-  setbits(buff, bit, 16, msg_mga_gps_eph->cic);
-  bit += 16;
-  setbits(buff, bit, 32, msg_mga_gps_eph->omega0);
-  bit += 32;
-  setbits(buff, bit, 16, msg_mga_gps_eph->cis);
-  bit += 16;
-  setbits(buff, bit, 16, msg_mga_gps_eph->crc);
-  bit += 16;
-  setbits(buff, bit, 32, msg_mga_gps_eph->i0);
-  bit += 32;
-  setbits(buff, bit, 32, msg_mga_gps_eph->omega);
-  bit += 32;
-  setbits(buff, bit, 32, msg_mga_gps_eph->omega_dot);
-  bit += 32;
-  setbits(buff, bit, 16, msg_mga_gps_eph->i_dot);
-  bit += 16;
+  memcpy(&buff[index], &msg_mga_gps_eph->reserved2, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->af2, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_mga_gps_eph->af1, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->af0, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->crs, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->delta_N, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->m0, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->cuc, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->cus, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->e, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->sqrt_A, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->toe, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->cic, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->omega0, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->cis, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->crc, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_mga_gps_eph->i0, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->omega, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->omega_dot, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_mga_gps_eph->i_dot, 2);
+  index += 2;
   /* reserved */
   for (int i = 0; i < 2; i++) {
-    setbitu(buff, bit, 8, msg_mga_gps_eph->reserved3[i]);
-    bit += 8;
+    memcpy(&buff[index], &msg_mga_gps_eph->reserved3[i], 1);
+    index += 1;
   }
 
-  return bit;
+  return index;
+}
+
+/** Serialize the ubx_rxm_sfrbx message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_rxm_sfrbx UBX rxm sfrbx message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,
+                              uint8_t buff[]) {
+  assert(msg_rxm_sfrbx);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_rxm_sfrbx->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_rxm_sfrbx->gnss_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->sat_id, 1);
+  index += 1;
+  /* reserved */
+  memcpy(&buff[index], &msg_rxm_sfrbx->reserved1, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->freq_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->num_words, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->channel, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_rxm_sfrbx->version, 1);
+  index += 1;
+  /* reserved */
+  memcpy(&buff[index], &msg_rxm_sfrbx->reserved2, 1);
+  index += 1;
+  memset(&buff[index], 0, sizeof(&msg_rxm_sfrbx->data_words));
+  for (int i = 0; i < msg_rxm_sfrbx->num_words; i++) {
+    memcpy(&buff[index], &msg_rxm_sfrbx->data_words[i], 4);
+    index += 4;
+  }
+
+  return index;
 }
