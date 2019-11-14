@@ -31,6 +31,7 @@ uint16_t ubx_encode_mga_gps_eph(const ubx_mga_gps_eph *msg_mga_gps_eph,
                                 uint8_t buff[]);
 uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,
                               uint8_t buff[]);
+uint16_t ubx_encode_esf_raw(const ubx_esf_raw *msg_esf_raw, uint8_t buff[]);
 
 #ifdef __cplusplus
 }

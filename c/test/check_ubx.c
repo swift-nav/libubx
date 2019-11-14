@@ -139,17 +139,27 @@ void msg_rxm_sfrbx_equals(const ubx_rxm_sfrbx *msg_in,
   }
 }
 
+void msg_esf_raw_equals(const ubx_esf_raw *msg_in, const ubx_esf_raw *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
+  for (int i = 0; i < (msg_in->length - 4) / 8; i++) {
+    ck_assert_uint_eq(msg_in->data[i], msg_out->data[i]);
+    ck_assert_uint_eq(msg_in->sensor_time_tag[i], msg_out->sensor_time_tag[i]);
+  }
+}
+
 START_TEST(test_ubx_rxm_rawx) {
 
   ubx_rxm_rawx msg;
 
   msg.class_id = 0x02;
   msg.msg_id = 0x15;
-  msg.length = 1;
   msg.rcv_tow = 415374000;
   msg.rcv_wn = 2015;
   msg.leap_second = 15;
   msg.num_meas = 3;
+  msg.length = 16 + 32 * msg.num_meas;
   msg.rec_status = 7;
   msg.version = 9;
 
@@ -197,14 +207,12 @@ START_TEST(test_ubx_rxm_rawx) {
 
   uint8_t buff[1024];
   memset(buff, 0, 1024);
-  ubx_encode_rawx(&msg, buff);
+  ck_assert_uint_eq(ubx_encode_rawx(&msg, buff), 4 + msg.length);
 
   ubx_rxm_rawx msg_rawx_out;
   int8_t ret = ubx_decode_rxm_rawx(buff, &msg_rawx_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_rawx_equals(&msg, &msg_rawx_out);
-
-  return;
 }
 
 END_TEST
@@ -215,6 +223,7 @@ START_TEST(test_ubx_mga_gps_eph) {
 
   msg.class_id = 0x13;
   msg.msg_id = 0x00;
+  msg.length = 68;
   msg.msg_type = 0x01;
   msg.version = 1;
   msg.sat_id = 3;
@@ -246,14 +255,12 @@ START_TEST(test_ubx_mga_gps_eph) {
 
   uint8_t buff[1024];
   memset(buff, 0, 1024);
-  ubx_encode_mga_gps_eph(&msg, buff);
+  ck_assert_uint_eq(ubx_encode_mga_gps_eph(&msg, buff), 4 + msg.length);
 
   ubx_mga_gps_eph msg_mga_gps_eph_out;
   int8_t ret = ubx_decode_mga_gps_eph(buff, &msg_mga_gps_eph_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_mga_gps_eph_equals(&msg, &msg_mga_gps_eph_out);
-
-  return;
 }
 
 END_TEST
@@ -264,6 +271,7 @@ START_TEST(test_ubx_nav_pvt) {
 
   msg.class_id = 0x01;
   msg.msg_id = 0x07;
+  msg.length = 92;
   msg.i_tow = 433200;
   msg.year = 2018;
   msg.month = 11;
@@ -297,14 +305,12 @@ START_TEST(test_ubx_nav_pvt) {
 
   uint8_t buff[1024];
   memset(buff, 0, 1024);
-  ubx_encode_nav_pvt(&msg, buff);
+  ck_assert_uint_eq(ubx_encode_nav_pvt(&msg, buff), 4 + msg.length);
 
   ubx_nav_pvt msg_nav_pvt_out;
   int8_t ret = ubx_decode_nav_pvt(buff, &msg_nav_pvt_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_nav_pvt_equals(&msg, &msg_nav_pvt_out);
-
-  return;
 }
 
 END_TEST
@@ -319,6 +325,7 @@ START_TEST(test_ubx_rxm_sfrbx) {
   msg.sat_id = 2;
   msg.freq_id = 3;
   msg.num_words = 10;
+  msg.length = 8 + 4 * msg.num_words;
   msg.channel = 4;
   msg.version = 0x02;
   for (int i = 0; i < 10; i++) {
@@ -327,14 +334,37 @@ START_TEST(test_ubx_rxm_sfrbx) {
 
   uint8_t buff[1024];
   memset(buff, 0, 1024);
-  ubx_encode_rxm_sfrbx(&msg, buff);
+  ck_assert_uint_eq(ubx_encode_rxm_sfrbx(&msg, buff), 4 + msg.length);
 
   ubx_rxm_sfrbx msg_rxm_sfrbx_out;
   int8_t ret = ubx_decode_rxm_sfrbx(buff, &msg_rxm_sfrbx_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_rxm_sfrbx_equals(&msg, &msg_rxm_sfrbx_out);
+}
 
-  return;
+END_TEST
+
+START_TEST(test_ubx_esf_raw) {
+
+  ubx_esf_raw msg;
+
+  msg.class_id = 0x10;
+  msg.msg_id = 0x03;
+  msg.length = 4 + 8 * 4;
+
+  for (int i = 0; i < 4; i++) {
+    msg.data[i] = 1 << i;
+    msg.sensor_time_tag[i] = i;
+  }
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_esf_raw(&msg, buff), 4 + msg.length);
+
+  ubx_esf_raw msg_esf_raw_out;
+  int8_t ret = ubx_decode_esf_raw(buff, &msg_esf_raw_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_esf_raw_equals(&msg, &msg_esf_raw_out);
 }
 
 END_TEST
@@ -347,6 +377,7 @@ Suite *ubx_suite(void) {
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);
+  tcase_add_test(tc_ubx, test_ubx_esf_raw);
   suite_add_tcase(s, tc_ubx);
 
   return s;

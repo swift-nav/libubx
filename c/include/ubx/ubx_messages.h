@@ -149,4 +149,36 @@ typedef struct {
   uint32_t data_words[10];
 } ubx_rxm_sfrbx;
 
+#define UBX_CLASS_ESF 0x10
+#define UBX_MSG_ESF_RAW 0x03
+
+typedef enum ESF_DATA_TYPE {
+  ESF_NONE = 0,
+  ESF_Z_AXIS_GYRO_ANG_RATE = 5,
+  ESF_FRONT_LEFT_WHEEL_TICKS,
+  ESF_FRONT_RIGHT_WHEEL_TICKS,
+  ESF_REAR_LEFT_WHEEL_TICKS,
+  ESF_REAR_RIGHT_WHEEL_TICKS,
+  ESF_SINGLE_TICK,
+  ESF_SPEED,
+  ESF_GYRO_TEMP,
+  ESF_Y_AXIS_GRYO_ANG_RATE,
+  ESF_X_AXIS_GRYO_ANG_RATE,
+  ESF_X_AXIS_ACCEL_SPECIFIC_FORCE,
+  ESF_Y_AXIS_ACCEL_SPECIFIC_FORCE,
+  ESF_Z_AXIS_ACCEL_SPECIFIC_FORCE,
+} ESF_DATA_TYPE;
+
+/* Arbitrarily defined, spec leaves this unbounded */
+#define ESF_RAW_MAX_COUNT 64
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint8_t reserved1[4];
+  uint32_t data[ESF_RAW_MAX_COUNT];
+  uint32_t sensor_time_tag[ESF_RAW_MAX_COUNT];
+} ubx_esf_raw;
+
 #endif /* SWIFTNAV_UBX_MESSAGES_H */

@@ -350,3 +350,35 @@ uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,
 
   return index;
 }
+
+/** Serialize the ubx_esf_raw message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_esf_raw UBX esf raw message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_esf_raw(const ubx_esf_raw *msg_esf_raw, uint8_t buff[]) {
+  assert(msg_esf_raw);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_esf_raw->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_raw->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_raw->length, 2);
+  index += 2;
+
+  /* reserved */
+  for (int i = 0; i < 4; i++) {
+    memcpy(&buff[index], &msg_esf_raw->reserved1[i], 1);
+    index += 1;
+  }
+
+  for (int i = 0; i < (msg_esf_raw->length - 4) / 8; i++) {
+    memcpy(&buff[index], &msg_esf_raw->data[i], 4);
+    index += 4;
+    memcpy(&buff[index], &msg_esf_raw->sensor_time_tag[i], 4);
+    index += 4;
+  }
+  return index;
+}

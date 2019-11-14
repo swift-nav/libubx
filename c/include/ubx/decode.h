@@ -26,6 +26,7 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt);
 ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],
                               ubx_mga_gps_eph *msg_mga_gps_eph);
 ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[], ubx_rxm_sfrbx *msg_rxm_sfrbx);
+ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw);
 
 #ifdef __cplusplus
 }
