@@ -351,6 +351,89 @@ uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,
   return index;
 }
 
+/** Serialize the ubx_esf_ins message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_esf_ins UBX esf ins message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_esf_ins(const ubx_esf_ins *msg_esf_ins, uint8_t buff[]) {
+  assert(msg_esf_ins);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_esf_ins->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_ins->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_ins->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_esf_ins->bitfield0, 4);
+  index += 4;
+
+  /* reserved */
+  for (int i = 0; i < 4; i++) {
+    memcpy(&buff[index], &msg_esf_ins->reserved1[i], 1);
+    index += 1;
+  }
+
+  memcpy(&buff[index], &msg_esf_ins->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->x_ang_rate, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->y_ang_rate, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->z_ang_rate, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->x_accel, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->y_accel, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_ins->z_accel, 4);
+  index += 4;
+
+  return index;
+}
+
+/** Serialize the ubx_esf_meas message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_esf_meas UBX esf meas message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_esf_meas(const ubx_esf_meas *msg_esf_meas, uint8_t buff[]) {
+  assert(msg_esf_meas);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_esf_meas->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_meas->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_esf_meas->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_esf_meas->time_tag, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_esf_meas->flags, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_esf_meas->id, 2);
+  index += 2;
+
+  u8 num_meas = (msg_esf_meas->flags >> 11) & 0x1F;
+  for (int i = 0; i < num_meas; i++) {
+    memcpy(&buff[index], &msg_esf_meas->data[i], 4);
+    index += 4;
+  }
+
+  bool has_calib = msg_esf_meas->flags & 0x8;
+  if (has_calib) {
+    memcpy(&buff[index], &msg_esf_meas->calib_tag, 4);
+    index += 4;
+  }
+
+  return index;
+}
+
 /** Serialize the ubx_esf_raw message
  *
  * \param buff outgoing data buffer

@@ -416,10 +416,110 @@ ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[],
   return RC_OK;
 }
 
+/** Deserialize the ubx_esf_ins message
+ *
+ * \param buff incoming data buffer
+ * \param msg_esf_ins UBX esf ins message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_esf_ins(const uint8_t buff[], ubx_esf_ins *msg_esf_ins) {
+  assert(msg_esf_ins);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->msg_id);
+  byte += 1;
+
+  if (msg_esf_ins->class_id != UBX_CLASS_ESF) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_esf_ins->msg_id != UBX_MSG_ESF_INS) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_ins->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->bitfield0);
+  byte += 4;
+
+  for (int i = 0; i < 4; i++) {
+    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->reserved1[i]);
+    byte += 1;
+  }
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->x_ang_rate);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->y_ang_rate);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->z_ang_rate);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->x_accel);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->y_accel);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->z_accel);
+  byte += 4;
+
+  return RC_OK;
+}
+
+/** Deserialize the ubx_esf_meas message
+ *
+ * \param buff incoming data buffer
+ * \param msg_esf_meas UBX esf meas message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_esf_meas(const uint8_t buff[], ubx_esf_meas *msg_esf_meas) {
+  assert(msg_esf_meas);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_meas->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_meas->msg_id);
+  byte += 1;
+
+  if (msg_esf_meas->class_id != UBX_CLASS_ESF) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_esf_meas->msg_id != UBX_MSG_ESF_MEAS) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->time_tag);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->flags);
+  byte += 2;
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->id);
+  byte += 2;
+
+  u8 num_meas = (msg_esf_meas->flags >> 11) & 0x1F;
+  for (int i = 0; i < num_meas; i++) {
+    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->data[i]);
+    byte += 4;
+  }
+
+  bool has_calib = msg_esf_meas->flags & 0x8;
+  if (has_calib) {
+    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->calib_tag);
+    byte += 4;
+  }
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_esf_raw message
  *
  * \param buff incoming data buffer
- * \param msg_esf_raw UBX esf rawmessage
+ * \param msg_esf_raw UBX esf raw message
  * \return UBX return code
  */
 ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw) {
@@ -442,7 +542,7 @@ ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw) {
   ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_raw->length);
   byte += 2;
   int num_measurements = (msg_esf_raw->length - 4) / 8;
-  assert(num_measurements <= ESF_RAW_MAX_COUNT);
+  assert(num_measurements <= ESF_DATA_MAX_COUNT);
 
   for (int i = 0; i < 4; i++) {
     ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_raw->reserved1[i]);

@@ -31,6 +31,13 @@ typedef enum ubx_rc_e {
 #define UBX_CLASS_RXM 0x02
 #define UBX_MSG_RXM_RAWX 0x15
 
+#define UBX_CLASS_ESF 0x10
+#define UBX_MSG_ESF_INS 0x15
+#define UBX_MSG_ESF_MEAS 0x02
+#define UBX_MSG_ESF_RAW 0x03
+/* Arbitrarily defined, spec leaves this unbounded */
+#define ESF_DATA_MAX_COUNT 64
+
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
@@ -149,9 +156,6 @@ typedef struct {
   uint32_t data_words[10];
 } ubx_rxm_sfrbx;
 
-#define UBX_CLASS_ESF 0x10
-#define UBX_MSG_ESF_RAW 0x03
-
 typedef enum ESF_DATA_TYPE {
   ESF_NONE = 0,
   ESF_Z_AXIS_GYRO_ANG_RATE = 5,
@@ -169,16 +173,39 @@ typedef enum ESF_DATA_TYPE {
   ESF_Z_AXIS_ACCEL_SPECIFIC_FORCE,
 } ESF_DATA_TYPE;
 
-/* Arbitrarily defined, spec leaves this unbounded */
-#define ESF_RAW_MAX_COUNT 64
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t bitfield0;
+  uint8_t reserved1[4];
+  uint32_t i_tow;
+  int32_t x_ang_rate;
+  int32_t y_ang_rate;
+  int32_t z_ang_rate;
+  int32_t x_accel;
+  int32_t y_accel;
+  int32_t z_accel;
+} ubx_esf_ins;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t time_tag;
+  uint16_t flags;
+  uint16_t id;
+  uint32_t data[ESF_DATA_MAX_COUNT];
+  uint32_t calib_tag;
+} ubx_esf_meas;
 
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
   uint16_t length;
   uint8_t reserved1[4];
-  uint32_t data[ESF_RAW_MAX_COUNT];
-  uint32_t sensor_time_tag[ESF_RAW_MAX_COUNT];
+  uint32_t data[ESF_DATA_MAX_COUNT];
+  uint32_t sensor_time_tag[ESF_DATA_MAX_COUNT];
 } ubx_esf_raw;
 
 #endif /* SWIFTNAV_UBX_MESSAGES_H */

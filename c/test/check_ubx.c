@@ -139,6 +139,40 @@ void msg_rxm_sfrbx_equals(const ubx_rxm_sfrbx *msg_in,
   }
 }
 
+void msg_esf_ins_equals(const ubx_esf_ins *msg_in, const ubx_esf_ins *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
+  ck_assert_uint_eq(msg_in->bitfield0, msg_out->bitfield0);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->x_ang_rate, msg_out->x_ang_rate);
+  ck_assert_uint_eq(msg_in->y_ang_rate, msg_out->y_ang_rate);
+  ck_assert_uint_eq(msg_in->z_ang_rate, msg_out->z_ang_rate);
+  ck_assert_uint_eq(msg_in->x_accel, msg_out->x_accel);
+  ck_assert_uint_eq(msg_in->y_accel, msg_out->y_accel);
+  ck_assert_uint_eq(msg_in->z_accel, msg_out->z_accel);
+}
+
+void msg_esf_meas_equals(const ubx_esf_meas *msg_in,
+                         const ubx_esf_meas *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
+  ck_assert_uint_eq(msg_in->time_tag, msg_out->time_tag);
+  ck_assert_uint_eq(msg_in->flags, msg_out->flags);
+  ck_assert_uint_eq(msg_in->id, msg_out->id);
+
+  u8 num_meas = (msg_in->flags >> 11) & 0x1F;
+  for (int i = 0; i < num_meas; i++) {
+    ck_assert_uint_eq(msg_in->data[i], msg_out->data[i]);
+  }
+
+  bool has_calib = msg_in->flags & 0x8;
+  if (has_calib) {
+    ck_assert_uint_eq(msg_in->calib_tag, msg_out->calib_tag);
+  }
+}
+
 void msg_esf_raw_equals(const ubx_esf_raw *msg_in, const ubx_esf_raw *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
   ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
@@ -344,6 +378,64 @@ START_TEST(test_ubx_rxm_sfrbx) {
 
 END_TEST
 
+START_TEST(test_ubx_esf_ins) {
+
+  ubx_esf_ins msg;
+
+  msg.class_id = 0x10;
+  msg.msg_id = 0x15;
+  msg.length = 36;
+
+  msg.bitfield0 = 0xA3A3;
+  msg.i_tow = 1;
+  msg.x_ang_rate = 2;
+  msg.y_ang_rate = 3;
+  msg.z_ang_rate = 4;
+  msg.x_accel = -2;
+  msg.y_accel = -3;
+  msg.z_accel = -4;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_esf_ins(&msg, buff), 4 + msg.length);
+
+  ubx_esf_ins msg_esf_ins_out;
+  int8_t ret = ubx_decode_esf_ins(buff, &msg_esf_ins_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_esf_ins_equals(&msg, &msg_esf_ins_out);
+}
+
+END_TEST
+
+START_TEST(test_ubx_esf_meas) {
+
+  ubx_esf_meas msg;
+
+  msg.class_id = 0x10;
+  msg.msg_id = 0x02;
+  msg.length = 12 + 4 * 2;
+
+  msg.time_tag = 1;
+  msg.flags = (2 << 11) | (1 << 3);
+  msg.id = 2;
+
+  msg.data[0] = 3;
+  msg.data[1] = 4;
+
+  msg.calib_tag = 5;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_esf_meas(&msg, buff), 4 + msg.length);
+
+  ubx_esf_meas msg_esf_meas_out;
+  int8_t ret = ubx_decode_esf_meas(buff, &msg_esf_meas_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_esf_meas_equals(&msg, &msg_esf_meas_out);
+}
+
+END_TEST
+
 START_TEST(test_ubx_esf_raw) {
 
   ubx_esf_raw msg;
@@ -377,6 +469,8 @@ Suite *ubx_suite(void) {
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);
+  tcase_add_test(tc_ubx, test_ubx_esf_ins);
+  tcase_add_test(tc_ubx, test_ubx_esf_meas);
   tcase_add_test(tc_ubx, test_ubx_esf_raw);
   suite_add_tcase(s, tc_ubx);
 
