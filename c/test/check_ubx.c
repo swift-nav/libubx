@@ -53,6 +53,18 @@ void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
   }
 }
 
+void msg_nav_clock_equals(const ubx_nav_clock *msg_in,
+                          const ubx_nav_clock *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_in->length);
+  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
+  ck_assert_uint_eq(msg_in->clk_bias, msg_in->clk_bias);
+  ck_assert_uint_eq(msg_in->clk_drift, msg_in->clk_drift);
+  ck_assert_uint_eq(msg_in->time_acc, msg_in->time_acc);
+  ck_assert_uint_eq(msg_in->freq_acc, msg_in->freq_acc);
+}
+
 void msg_nav_pvt_equals(const ubx_nav_pvt *msg_in, const ubx_nav_pvt *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
   ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
@@ -64,7 +76,7 @@ void msg_nav_pvt_equals(const ubx_nav_pvt *msg_in, const ubx_nav_pvt *msg_out) {
   ck_assert_uint_eq(msg_in->min, msg_in->min);
   ck_assert_uint_eq(msg_in->sec, msg_in->sec);
   ck_assert_uint_eq(msg_in->valid, msg_in->valid);
-  ck_assert_uint_eq(msg_in->time_accuracy, msg_in->time_accuracy);
+  ck_assert_uint_eq(msg_in->time_acc, msg_in->time_acc);
   ck_assert_uint_eq(msg_in->nano, msg_in->nano);
   ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
   ck_assert_uint_eq(msg_in->flags, msg_in->flags);
@@ -299,8 +311,31 @@ START_TEST(test_ubx_mga_gps_eph) {
 
 END_TEST
 
-START_TEST(test_ubx_nav_pvt) {
+START_TEST(test_ubx_nav_clock) {
+  ubx_nav_clock msg;
+  msg.class_id = 0x01;
+  msg.msg_id = 0x22;
+  msg.length = 20;
 
+  msg.i_tow = 12345;
+  msg.clk_bias = -777;
+  msg.clk_drift = -777;
+  msg.time_acc = 888;
+  msg.freq_acc = 999;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_nav_clock(&msg, buff), 4 + msg.length);
+
+  ubx_nav_clock msg_nav_clock_out;
+  int8_t ret = ubx_decode_nav_clock(buff, &msg_nav_clock_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_nav_clock_equals(&msg, &msg_nav_clock_out);
+}
+
+END_TEST
+
+START_TEST(test_ubx_nav_pvt) {
   ubx_nav_pvt msg;
 
   msg.class_id = 0x01;
@@ -314,7 +349,7 @@ START_TEST(test_ubx_nav_pvt) {
   msg.min = 59;
   msg.sec = 1;
   msg.valid = 0xFF;
-  msg.time_accuracy = 432;
+  msg.time_acc = 432;
   msg.nano = -3579;
   msg.fix_type = 4;
   msg.flags = 0xFA;
@@ -466,6 +501,7 @@ Suite *ubx_suite(void) {
 
   TCase *tc_ubx = tcase_create("ubx");
   tcase_add_test(tc_ubx, test_ubx_rxm_rawx);
+  tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);

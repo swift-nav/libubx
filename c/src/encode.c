@@ -129,6 +129,38 @@ uint16_t ubx_encode_rawx(const ubx_rxm_rawx *msg_rawx, uint8_t buff[]) {
   return index;
 }
 
+/** Serialize the ubx_nav_clock message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_nav_clock UBX nav clock message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_nav_clock(const ubx_nav_clock *msg_nav_clock,
+                              uint8_t buff[]) {
+  assert(msg_nav_clock);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_clock->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_clock->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_clock->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_clock->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_clock->clk_bias, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_clock->clk_drift, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_clock->time_acc, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_clock->freq_acc, 4);
+  index += 4;
+
+  return index;
+}
+
 /** Serialize the ubx_nav_pvt message
  *
  * \param buff outgoing data buffer
@@ -162,7 +194,7 @@ uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]) {
   index += 1;
   memcpy(&buff[index], &msg_nav_pvt->valid, 1);
   index += 1;
-  memcpy(&buff[index], &msg_nav_pvt->time_accuracy, 4);
+  memcpy(&buff[index], &msg_nav_pvt->time_acc, 4);
   index += 4;
   memcpy(&buff[index], &msg_nav_pvt->nano, 4);
   index += 4;

@@ -167,6 +167,47 @@ ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx) {
   return RC_OK;
 }
 
+/** Deserialize the ubx_nav_clock message
+ *
+ * \param buff incoming data buffer
+ * \param msg_nav_clock UBX nav clock message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_nav_clock(const uint8_t buff[],
+                            ubx_nav_clock *msg_nav_clock) {
+  assert(msg_nav_clock);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_clock->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_clock->msg_id);
+  byte += 1;
+
+  if (msg_nav_clock->class_id != UBX_CLASS_NAV) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_nav_clock->msg_id != UBX_MSG_NAV_CLOCK) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_clock->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->clk_bias);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->clk_drift);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->time_acc);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->freq_acc);
+  byte += 4;
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_nav_pvt message
  *
  * \param buff incoming data buffer
@@ -182,11 +223,11 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
   ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->msg_id);
   byte += 1;
 
-  if (msg_nav_pvt->class_id != 0x01) {
+  if (msg_nav_pvt->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  if (msg_nav_pvt->msg_id != 0x07) {
+  if (msg_nav_pvt->msg_id != UBX_MSG_NAV_PVT) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
@@ -209,7 +250,7 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
   byte += 1;
   ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->valid);
   byte += 1;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->time_accuracy);
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->time_acc);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->nano);
   byte += 4;
