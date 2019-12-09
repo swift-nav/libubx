@@ -25,6 +25,35 @@
 
 #define FLOAT_EPS 1e-6
 
+void msg_hnr_pvt_equals(const ubx_hnr_pvt *msg_in, const ubx_hnr_pvt *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
+  ck_assert_uint_eq(msg_in->year, msg_in->year);
+  ck_assert_uint_eq(msg_in->month, msg_in->month);
+  ck_assert_uint_eq(msg_in->day, msg_in->day);
+  ck_assert_uint_eq(msg_in->hour, msg_in->hour);
+  ck_assert_uint_eq(msg_in->min, msg_in->min);
+  ck_assert_uint_eq(msg_in->sec, msg_in->sec);
+  ck_assert_uint_eq(msg_in->valid, msg_in->valid);
+  ck_assert_uint_eq(msg_in->nano, msg_in->nano);
+  ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
+  ck_assert_uint_eq(msg_in->flags, msg_in->flags);
+  ck_assert_uint_eq(msg_in->lon, msg_in->lon);
+  ck_assert_uint_eq(msg_in->lat, msg_in->lat);
+  ck_assert_uint_eq(msg_in->height, msg_in->height);
+  ck_assert_uint_eq(msg_in->height_mean_sea_level,
+                    msg_in->height_mean_sea_level);
+  ck_assert_uint_eq(msg_in->ground_speed, msg_in->ground_speed);
+  ck_assert_uint_eq(msg_in->speed, msg_in->speed);
+  ck_assert_uint_eq(msg_in->heading_of_motion, msg_in->heading_of_motion);
+  ck_assert_uint_eq(msg_in->heading_vehicle, msg_in->heading_vehicle);
+  ck_assert_uint_eq(msg_in->horizontal_accuracy, msg_in->horizontal_accuracy);
+  ck_assert_uint_eq(msg_in->vertical_accuracy, msg_in->vertical_accuracy);
+  ck_assert_uint_eq(msg_in->speed_acc, msg_in->speed_acc);
+  ck_assert_uint_eq(msg_in->heading_acc, msg_in->heading_acc);
+}
+
 void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
   ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
@@ -194,6 +223,48 @@ void msg_esf_raw_equals(const ubx_esf_raw *msg_in, const ubx_esf_raw *msg_out) {
     ck_assert_uint_eq(msg_in->sensor_time_tag[i], msg_out->sensor_time_tag[i]);
   }
 }
+
+START_TEST(test_ubx_hnr_pvt) {
+  ubx_hnr_pvt msg;
+
+  msg.class_id = 0x28;
+  msg.msg_id = 0x00;
+  msg.length = 72;
+  msg.i_tow = 433200;
+  msg.year = 2018;
+  msg.month = 11;
+  msg.day = 29;
+  msg.hour = 23;
+  msg.min = 59;
+  msg.sec = 1;
+  msg.valid = 0xFF;
+  msg.nano = -3579;
+  msg.fix_type = 4;
+  msg.flags = 0xFA;
+  msg.lon = 432;
+  msg.lat = 123;
+  msg.height = 987;
+  msg.height_mean_sea_level = 23;
+  msg.ground_speed = 8;
+  msg.speed = 9;
+  msg.heading_of_motion = 12;
+  msg.heading_vehicle = 99;
+  msg.horizontal_accuracy = 12;
+  msg.vertical_accuracy = 14;
+  msg.speed_acc = 17;
+  msg.heading_acc = 18;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_hnr_pvt(&msg, buff), 4 + msg.length);
+
+  ubx_hnr_pvt msg_hnr_pvt_out;
+  int8_t ret = ubx_decode_hnr_pvt(buff, &msg_hnr_pvt_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_hnr_pvt_equals(&msg, &msg_hnr_pvt_out);
+}
+
+END_TEST
 
 START_TEST(test_ubx_rxm_rawx) {
 
@@ -500,6 +571,7 @@ Suite *ubx_suite(void) {
   Suite *s = suite_create("ubx");
 
   TCase *tc_ubx = tcase_create("ubx");
+  tcase_add_test(tc_ubx, test_ubx_hnr_pvt);
   tcase_add_test(tc_ubx, test_ubx_rxm_rawx);
   tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);

@@ -61,6 +61,82 @@ void ubx_setbitsl(uint8_t *buff, uint32_t pos, uint32_t len, int64_t data) {
   ubx_setbitul(buff, pos, len, (uint64_t)data);
 }
 
+/** Serialize the ubx_hnr_pvt message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_hnr_pvt UBX hnr pvt message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_hnr_pvt(const ubx_hnr_pvt *msg_hnr_pvt, uint8_t buff[]) {
+  assert(msg_hnr_pvt);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_hnr_pvt->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_hnr_pvt->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->year, 2);
+  index += 2;
+  memcpy(&buff[index], &msg_hnr_pvt->month, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->day, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->hour, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->min, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->sec, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->valid, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->nano, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->fix_type, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_hnr_pvt->flags, 1);
+  index += 1;
+  /* reserved */
+  for (int i = 0; i < 2; i++) {
+    memcpy(&buff[index], &msg_hnr_pvt->reserved1[i], 1);
+    index += 1;
+  }
+  memcpy(&buff[index], &msg_hnr_pvt->lon, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->lat, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->height, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->height_mean_sea_level, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->ground_speed, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->speed, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->heading_of_motion, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->heading_vehicle, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->horizontal_accuracy, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->vertical_accuracy, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->speed_acc, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_hnr_pvt->heading_acc, 4);
+  index += 4;
+  /* reserved */
+  for (int i = 0; i < 4; i++) {
+    memcpy(&buff[index], &msg_hnr_pvt->reserved2[i], 1);
+    index += 1;
+  }
+  return index;
+}
+
 /** Serialize the ubx_rxm_rawx message
  *
  * \param buff outgoing data buffer

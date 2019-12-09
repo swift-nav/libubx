@@ -92,6 +92,92 @@ void ubx_get_bytes(const uint8_t *buff, uint32_t index, uint8_t len, u8 *dest) {
   }
 }
 
+/** Deserialize the ubx_hnr_pvt message
+ *
+ * \param buff incoming data buffer
+ * \param msg_hnr_pvt UBX hnr pvt message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_hnr_pvt(const uint8_t buff[], ubx_hnr_pvt *msg_hnr_pvt) {
+  assert(msg_hnr_pvt);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->msg_id);
+  byte += 1;
+
+  if (msg_hnr_pvt->class_id != UBX_CLASS_HNR) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_hnr_pvt->msg_id != UBX_MSG_HNR_PVT) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_hnr_pvt->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_hnr_pvt->year);
+  byte += 2;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->month);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->day);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->hour);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->min);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->sec);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->valid);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->nano);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->fix_type);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->flags);
+  byte += 1;
+  /* reserved */
+  for (int i = 0; i < 2; i++) {
+    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->reserved1[i]);
+    byte += 1;
+  }
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->lon);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->lat);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->height);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->height_mean_sea_level);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->ground_speed);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->speed);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_of_motion);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_vehicle);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->horizontal_accuracy);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->vertical_accuracy);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->speed_acc);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_acc);
+  byte += 4;
+  /* reserved */
+  for (int i = 0; i < 4; i++) {
+    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->reserved2[i]);
+    byte += 1;
+  }
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_rxm_rawx message
  *
  * \param buff incoming data buffer

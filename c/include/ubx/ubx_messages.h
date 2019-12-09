@@ -25,6 +25,9 @@ typedef enum ubx_rc_e {
   RC_INVALID_MESSAGE = -2
 } ubx_rc;
 
+#define UBX_CLASS_HNR 0x28
+#define UBX_MSG_HNR_PVT 0x00
+
 #define UBX_CLASS_NAV 0x01
 #define UBX_MSG_NAV_CLOCK 0x22
 #define UBX_MSG_NAV_PVT 0x07
@@ -38,6 +41,37 @@ typedef enum ubx_rc_e {
 #define UBX_MSG_ESF_RAW 0x03
 /* Arbitrarily defined, spec leaves this unbounded */
 #define ESF_DATA_MAX_COUNT 64
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t i_tow;
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hour;
+  uint8_t min;
+  uint8_t sec;
+  uint8_t valid;
+  int32_t nano;
+  uint8_t fix_type;
+  uint8_t flags;
+  uint8_t reserved1[2];
+  int32_t lon;
+  int32_t lat;
+  int32_t height;
+  int32_t height_mean_sea_level;
+  int32_t ground_speed;
+  int32_t speed;
+  int32_t heading_of_motion;
+  int32_t heading_vehicle;
+  uint32_t horizontal_accuracy;
+  uint32_t vertical_accuracy;
+  uint32_t speed_acc;
+  uint32_t heading_acc;
+  uint8_t reserved2[4];
+} ubx_hnr_pvt;
 
 typedef struct {
   uint8_t class_id;
