@@ -326,6 +326,38 @@ uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]) {
   return index;
 }
 
+/** Serialize the ubx_nav_velecef message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_nav_velecef UBX nav velecef message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_nav_velecef(const ubx_nav_velecef *msg_nav_velecef,
+                                uint8_t buff[]) {
+  assert(msg_nav_velecef);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_velecef->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_velecef->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_velecef->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_velecef->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_velecef->ecefVX, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_velecef->ecefVY, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_velecef->ecefVZ, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_velecef->speed_acc, 4);
+  index += 4;
+
+  return index;
+}
+
 /** Serialize the ubx_mga_gps_eph message
  *
  * \param buff outgoing data buffer

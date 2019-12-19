@@ -131,6 +131,17 @@ void msg_nav_pvt_equals(const ubx_nav_pvt *msg_in, const ubx_nav_pvt *msg_out) {
                     msg_in->magnetic_declination_accuracy);
 }
 
+void msg_nav_velecef_equals(const ubx_nav_velecef *msg_in,
+                            const ubx_nav_velecef *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
+  ck_assert_int_eq(msg_in->ecefVX, msg_in->ecefVX);
+  ck_assert_int_eq(msg_in->ecefVY, msg_in->ecefVY);
+  ck_assert_int_eq(msg_in->ecefVZ, msg_in->ecefVZ);
+  ck_assert_uint_eq(msg_in->speed_acc, msg_in->speed_acc);
+}
+
 void msg_mga_gps_eph_equals(const ubx_mga_gps_eph *msg_in,
                             const ubx_mga_gps_eph *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
@@ -455,6 +466,30 @@ START_TEST(test_ubx_nav_pvt) {
 
 END_TEST
 
+START_TEST(test_ubx_nav_velecef) {
+  ubx_nav_velecef msg;
+
+  msg.class_id = 0x01;
+  msg.msg_id = 0x11;
+  msg.length = 20;
+  msg.i_tow = 433200;
+  msg.ecefVX = -1;
+  msg.ecefVY = 0;
+  msg.ecefVZ = 1;
+  msg.speed_acc = 1234;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_nav_velecef(&msg, buff), 4 + msg.length);
+
+  ubx_nav_velecef msg_nav_velecef_out;
+  int8_t ret = ubx_decode_nav_velecef(buff, &msg_nav_velecef_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_nav_velecef_equals(&msg, &msg_nav_velecef_out);
+}
+
+END_TEST
+
 START_TEST(test_ubx_rxm_sfrbx) {
 
   ubx_rxm_sfrbx msg;
@@ -575,6 +610,7 @@ Suite *ubx_suite(void) {
   tcase_add_test(tc_ubx, test_ubx_rxm_rawx);
   tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
+  tcase_add_test(tc_ubx, test_ubx_nav_velecef);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);
   tcase_add_test(tc_ubx, test_ubx_esf_ins);

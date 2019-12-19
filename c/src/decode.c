@@ -394,6 +394,47 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
   return RC_OK;
 }
 
+/** Deserialize the ubx_nav_velecef message
+ *
+ * \param buff incoming data buffer
+ * \param msg_nav_velecef UBX nav velecef message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
+                              ubx_nav_velecef *msg_nav_velecef) {
+  assert(msg_nav_velecef);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_velecef->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_velecef->msg_id);
+  byte += 1;
+
+  if (msg_nav_velecef->class_id != UBX_CLASS_NAV) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_nav_velecef->msg_id != UBX_MSG_NAV_VELECEF) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_velecef->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVX);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVY);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVZ);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->speed_acc);
+  byte += 4;
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_mga_gps_eph message
  *
  * \param buff incoming data buffer

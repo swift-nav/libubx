@@ -31,6 +31,7 @@ typedef enum ubx_rc_e {
 #define UBX_CLASS_NAV 0x01
 #define UBX_MSG_NAV_CLOCK 0x22
 #define UBX_MSG_NAV_PVT 0x07
+#define UBX_MSG_NAV_VELECEF 0x11
 
 #define UBX_CLASS_RXM 0x02
 #define UBX_MSG_RXM_RAWX 0x15
@@ -186,6 +187,17 @@ typedef struct {
   int16_t magnetic_declination;
   uint16_t magnetic_declination_accuracy;
 } ubx_nav_pvt;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t i_tow;
+  int32_t ecefVX;
+  int32_t ecefVY;
+  int32_t ecefVZ;
+  uint32_t speed_acc;
+} ubx_nav_velecef;
 
 typedef struct {
   uint8_t class_id;
