@@ -41,7 +41,7 @@ typedef enum ubx_rc_e {
 #define UBX_MSG_ESF_MEAS 0x02
 #define UBX_MSG_ESF_RAW 0x03
 /* Arbitrarily defined, spec leaves this unbounded */
-#define ESF_DATA_MAX_COUNT 64
+#define ESF_DATA_MAX_COUNT 128
 
 typedef struct {
   uint8_t class_id;
