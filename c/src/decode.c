@@ -253,6 +253,57 @@ ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx) {
   return RC_OK;
 }
 
+/** Deserialize the ubx_nav_att message
+ *
+ * \param buff incoming data buffer
+ * \param msg_nav_att UBX nav att message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
+  assert(msg_nav_att);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->msg_id);
+  byte += 1;
+
+  if (msg_nav_att->class_id != UBX_CLASS_NAV) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_nav_att->msg_id != UBX_MSG_NAV_ATT) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_att->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->reserved);
+  byte += 1;
+  /* reserved */
+  for (int i = 0; i < 3; i++) {
+    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->reserved[i]);
+    byte += 1;
+  }
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->roll);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->pitch);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->heading);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_roll);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_pitch);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_heading);
+  byte += 4;
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_nav_clock message
  *
  * \param buff incoming data buffer

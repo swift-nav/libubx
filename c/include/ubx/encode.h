@@ -27,6 +27,7 @@ extern "C" {
 
 uint16_t ubx_encode_hnr_pvt(const ubx_hnr_pvt *msg_hnr_pvt, uint8_t buff[]);
 uint16_t ubx_encode_rawx(const ubx_rxm_rawx *msg_rawx, uint8_t buff[]);
+uint16_t ubx_encode_nav_att(const ubx_nav_att *msg_nav_att, uint8_t buff[]);
 uint16_t ubx_encode_nav_clock(const ubx_nav_clock *msg_nav_clock,
                               uint8_t buff[]);
 uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]);

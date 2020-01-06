@@ -82,6 +82,20 @@ void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
   }
 }
 
+void msg_nav_att_equals(const ubx_nav_att *msg_in, const ubx_nav_att *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_in->length);
+  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
+  ck_assert_uint_eq(msg_in->version, msg_in->version);
+  ck_assert_uint_eq(msg_in->pitch, msg_in->pitch);
+  ck_assert_uint_eq(msg_in->roll, msg_in->roll);
+  ck_assert_uint_eq(msg_in->heading, msg_in->heading);
+  ck_assert_uint_eq(msg_in->acc_pitch, msg_in->acc_pitch);
+  ck_assert_uint_eq(msg_in->acc_roll, msg_in->acc_roll);
+  ck_assert_uint_eq(msg_in->acc_heading, msg_in->acc_heading);
+}
+
 void msg_nav_clock_equals(const ubx_nav_clock *msg_in,
                           const ubx_nav_clock *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
@@ -393,6 +407,33 @@ START_TEST(test_ubx_mga_gps_eph) {
 
 END_TEST
 
+START_TEST(test_ubx_nav_att) {
+  ubx_nav_att msg;
+  msg.class_id = 0x01;
+  msg.msg_id = 0x05;
+  msg.length = 32;
+
+  msg.i_tow = 12345;
+  msg.version = 0;
+  msg.roll = -1;
+  msg.pitch = -2;
+  msg.heading = -3;
+  msg.acc_roll = 1;
+  msg.acc_pitch = 2;
+  msg.acc_heading = 3;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_nav_att(&msg, buff), 4 + msg.length);
+
+  ubx_nav_att msg_nav_att_out;
+  int8_t ret = ubx_decode_nav_att(buff, &msg_nav_att_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_nav_att_equals(&msg, &msg_nav_att_out);
+}
+
+END_TEST
+
 START_TEST(test_ubx_nav_clock) {
   ubx_nav_clock msg;
   msg.class_id = 0x01;
@@ -608,6 +649,7 @@ Suite *ubx_suite(void) {
   TCase *tc_ubx = tcase_create("ubx");
   tcase_add_test(tc_ubx, test_ubx_hnr_pvt);
   tcase_add_test(tc_ubx, test_ubx_rxm_rawx);
+  tcase_add_test(tc_ubx, test_ubx_nav_att);
   tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_nav_velecef);

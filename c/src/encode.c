@@ -205,7 +205,49 @@ uint16_t ubx_encode_rawx(const ubx_rxm_rawx *msg_rawx, uint8_t buff[]) {
   return index;
 }
 
-/** Serialize the ubx_nav_clock message
+/** Serialize the ubx_nav_att message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_nav_att UBX nav att message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_nav_att(const ubx_nav_att *msg_nav_att, uint8_t buff[]) {
+  assert(msg_nav_att);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_att->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_att->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_att->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_att->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->reserved, 1);
+  index += 1;
+  /* reserved */
+  for (int i = 0; i < 3; i++) {
+    memcpy(&buff[index], &msg_nav_att->reserved[i], 1);
+    index += 1;
+  }
+  memcpy(&buff[index], &msg_nav_att->roll, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->pitch, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->heading, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->acc_roll, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->acc_pitch, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_att->acc_heading, 4);
+  index += 4;
+
+  return index;
+}
+
+/** Serialize the ubx_nav_att message
  *
  * \param buff outgoing data buffer
  * \param msg_nav_clock UBX nav clock message to serialize

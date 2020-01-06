@@ -23,6 +23,7 @@ extern "C" {
 void ubx_checksum(const uint8_t buff[], size_t length, uint8_t *checksum);
 ubx_rc ubx_decode_hnr_pvt(const uint8_t buff[], ubx_hnr_pvt *msg_hnr_pvt);
 ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx);
+ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att);
 ubx_rc ubx_decode_nav_clock(const uint8_t buff[], ubx_nav_clock *msg_nav_clock);
 ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt);
 ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],

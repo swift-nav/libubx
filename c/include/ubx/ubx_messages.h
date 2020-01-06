@@ -29,6 +29,7 @@ typedef enum ubx_rc_e {
 #define UBX_MSG_HNR_PVT 0x00
 
 #define UBX_CLASS_NAV 0x01
+#define UBX_MSG_NAV_ATT 0x05
 #define UBX_MSG_NAV_CLOCK 0x22
 #define UBX_MSG_NAV_PVT 0x07
 #define UBX_MSG_NAV_VELECEF 0x11
@@ -137,6 +138,21 @@ typedef struct {
   int16_t i_dot;
   uint8_t reserved3[2];
 } ubx_mga_gps_eph;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t i_tow;
+  uint8_t version;
+  uint8_t reserved[3];
+  int32_t roll;
+  int32_t pitch;
+  int32_t heading;
+  uint32_t acc_roll;
+  uint32_t acc_pitch;
+  uint32_t acc_heading;
+} ubx_nav_att;
 
 typedef struct {
   uint8_t class_id;
