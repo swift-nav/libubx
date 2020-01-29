@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Swift Navigation Inc.
+ * Copyright (C) 2017,2020 Swift Navigation Inc.
  * Contact: Swift Navigation <dev@swiftnav.com>
  *
  * This source is subject to the license found in the file 'LICENSE' which must
@@ -19,5 +19,10 @@
 
 #define UBX_SYNC_CHAR_1 0xB5
 #define UBX_SYNC_CHAR_2 0x62
+
+#define UBX_GNSS_ID_GPS 0
+#define UBX_GNSS_ID_GAL 2
+#define UBX_GNSS_ID_BDS 3
+#define UBX_GNSS_ID_GLO 6
 
 #endif /* SWIFTNAV_UBX_CONSTANTS_H */

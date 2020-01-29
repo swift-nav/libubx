@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Swift Navigation Inc.
+ * Copyright (C) 2019,2020 Swift Navigation Inc.
  * Contact: Swift Navigation <dev@swiftnav.com>
  *
  * This source is subject to the license found in the file 'LICENSE' which must
@@ -36,6 +36,7 @@ typedef enum ubx_rc_e {
 
 #define UBX_CLASS_RXM 0x02
 #define UBX_MSG_RXM_RAWX 0x15
+#define UBX_MSG_RXM_SFRBX 0x13 /* broadcast navigation data subframe */
 
 #define UBX_CLASS_ESF 0x10
 #define UBX_MSG_ESF_INS 0x15
