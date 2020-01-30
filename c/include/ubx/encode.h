@@ -33,6 +33,8 @@ uint16_t ubx_encode_nav_clock(const ubx_nav_clock *msg_nav_clock,
 uint16_t ubx_encode_nav_pvt(const ubx_nav_pvt *msg_nav_pvt, uint8_t buff[]);
 uint16_t ubx_encode_nav_velecef(const ubx_nav_velecef *msg_nav_velecef,
                                 uint8_t buff[]);
+uint16_t ubx_encode_nav_status(const ubx_nav_status *msg_nav_status,
+                               uint8_t buff[]);
 uint16_t ubx_encode_mga_gps_eph(const ubx_mga_gps_eph *msg_mga_gps_eph,
                                 uint8_t buff[]);
 uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,

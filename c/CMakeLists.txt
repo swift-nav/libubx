@@ -6,11 +6,20 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" "${CMAKE_CURRENT_LIST_DI
 include(GNUInstallDirs)
 include(CCache)
 include(SwiftCmakeOptions)
+include(TestTargets)
+
+set(disable_tests FALSE)
+if(MSVC)
+  message(STATUS "MSVC detected, skipping unit tests")
+  set(disable_tests TRUE)
+endif()
 
 swift_create_project_options(
-    HAS_TESTS
-    TEST_PACKAGES "Check"
-    )
+        HAS_TESTS
+        HAS_TEST_LIBS
+        DISABLE_TEST_COMPONENTS ${disable_tests}
+        TEST_PACKAGES "Check"
+)
 
 find_package(Swiftnav REQUIRED)
 

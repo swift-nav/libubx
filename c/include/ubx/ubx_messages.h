@@ -15,7 +15,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
 #include <ubx/constants.h>
 
 /* return codes for the decoders */
@@ -33,6 +32,7 @@ typedef enum ubx_rc_e {
 #define UBX_MSG_NAV_CLOCK 0x22
 #define UBX_MSG_NAV_PVT 0x07
 #define UBX_MSG_NAV_VELECEF 0x11
+#define UBX_MSG_NAV_STATUS 0x03
 
 #define UBX_CLASS_RXM 0x02
 #define UBX_MSG_RXM_RAWX 0x15
@@ -220,6 +220,19 @@ typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
   uint16_t length;
+  uint32_t i_tow;
+  uint8_t fix_type;
+  uint8_t status_flags;
+  uint8_t fix_status;
+  uint8_t status_flags_ext;
+  uint32_t ttff_ms;
+  uint32_t msss;
+} ubx_nav_status;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
   uint8_t gnss_id;
   uint8_t sat_id;
   uint8_t reserved1;
@@ -278,7 +291,7 @@ typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
   uint16_t length;
-  uint8_t reserved1[4];
+  uint32_t msss;
   uint32_t data[ESF_DATA_MAX_COUNT];
   uint32_t sensor_time_tag[ESF_DATA_MAX_COUNT];
 } ubx_esf_raw;

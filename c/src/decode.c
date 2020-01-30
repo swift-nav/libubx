@@ -10,9 +10,8 @@
  * WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#include <ubx/decode.h>
-
 #include <swiftnav/bits.h>
+#include <ubx/decode.h>
 
 // UBX protocol is little-endian. This file assumes that the host system is also
 // little endian.
@@ -486,6 +485,51 @@ ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
   return RC_OK;
 }
 
+/** Deserialize the ubx_nav_status message
+ *
+ * \param buff incoming data buffer
+ * \param msg_nav_status UBX nav status message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_nav_status(const uint8_t buff[],
+                             ubx_nav_status *msg_nav_status) {
+  assert(msg_nav_status);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->msg_id);
+  byte += 1;
+
+  if (msg_nav_status->class_id != UBX_CLASS_NAV) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_nav_status->msg_id != UBX_MSG_NAV_STATUS) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_status->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->fix_type);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->status_flags);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->fix_status);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->status_flags_ext);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->ttff_ms);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->msss);
+  byte += 4;
+
+  return RC_OK;
+}
+
 /** Deserialize the ubx_mga_gps_eph message
  *
  * \param buff incoming data buffer
@@ -763,10 +807,8 @@ ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw) {
   int num_measurements = (msg_esf_raw->length - 4) / 8;
   assert(num_measurements <= ESF_DATA_MAX_COUNT);
 
-  for (int i = 0; i < 4; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_raw->reserved1[i]);
-    byte += 1;
-  }
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_raw->msss);
+  byte += 4;
 
   for (int i = 0; i < num_measurements; i++) {
     ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_raw->data[i]);

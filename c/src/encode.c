@@ -400,6 +400,42 @@ uint16_t ubx_encode_nav_velecef(const ubx_nav_velecef *msg_nav_velecef,
   return index;
 }
 
+/** Serialize the ubx_nav_status message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_nav_status UBX nav status message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_nav_status(const ubx_nav_status *msg_nav_status,
+                               uint8_t buff[]) {
+  assert(msg_nav_status);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_status->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_status->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_status->fix_type, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->status_flags, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->fix_status, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->status_flags_ext, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_status->ttff_ms, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_status->msss, 4);
+  index += 4;
+
+  return index;
+}
+
 /** Serialize the ubx_mga_gps_eph message
  *
  * \param buff outgoing data buffer
@@ -634,10 +670,8 @@ uint16_t ubx_encode_esf_raw(const ubx_esf_raw *msg_esf_raw, uint8_t buff[]) {
   index += 2;
 
   /* reserved */
-  for (int i = 0; i < 4; i++) {
-    memcpy(&buff[index], &msg_esf_raw->reserved1[i], 1);
-    index += 1;
-  }
+  memcpy(&buff[index], &msg_esf_raw->msss, 4);
+  index += 4;
 
   for (int i = 0; i < (msg_esf_raw->length - 4) / 8; i++) {
     memcpy(&buff[index], &msg_esf_raw->data[i], 4);

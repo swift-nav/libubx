@@ -156,6 +156,20 @@ void msg_nav_velecef_equals(const ubx_nav_velecef *msg_in,
   ck_assert_uint_eq(msg_in->speed_acc, msg_in->speed_acc);
 }
 
+void msg_nav_status_equals(const ubx_nav_status *msg_in,
+                           const ubx_nav_status *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
+  ck_assert_uint_eq(msg_in->msss, msg_in->msss);
+  ck_assert_uint_eq(msg_in->ttff_ms, msg_in->ttff_ms);
+  ck_assert_uint_eq(msg_in->status_flags_ext, msg_in->status_flags_ext);
+  ck_assert_uint_eq(msg_in->status_flags, msg_in->status_flags);
+  ck_assert_uint_eq(msg_in->fix_status, msg_in->fix_status);
+  ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
+  ck_assert_uint_eq(msg_in->length, msg_in->length);
+}
+
 void msg_mga_gps_eph_equals(const ubx_mga_gps_eph *msg_in,
                             const ubx_mga_gps_eph *msg_out) {
   ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
@@ -531,6 +545,31 @@ START_TEST(test_ubx_nav_velecef) {
 
 END_TEST
 
+START_TEST(test_ubx_nav_status) {
+  ubx_nav_status msg;
+
+  msg.class_id = 0x01;
+  msg.msg_id = 0x03;
+  msg.length = 16;
+  msg.i_tow = 433200;
+  msg.msss = 100;
+  msg.status_flags = 0x12;
+  msg.status_flags_ext = 0x34;
+  msg.fix_type = 5;
+  msg.ttff_ms = 25000;
+  msg.fix_status = 3;
+
+  uint8_t buff[1024];
+  memset(buff, 0, 1024);
+  ck_assert_uint_eq(ubx_encode_nav_status(&msg, buff), 4 + msg.length);
+  ubx_nav_status msg_nav_status_out;
+  int8_t ret = ubx_decode_nav_status(buff, &msg_nav_status_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_nav_status_equals(&msg, &msg_nav_status_out);
+}
+
+END_TEST
+
 START_TEST(test_ubx_rxm_sfrbx) {
 
   ubx_rxm_sfrbx msg;
@@ -653,6 +692,7 @@ Suite *ubx_suite(void) {
   tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_nav_velecef);
+  tcase_add_test(tc_ubx, test_ubx_nav_status);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);
   tcase_add_test(tc_ubx, test_ubx_esf_ins);
