@@ -21,8 +21,11 @@
 #define UBX_SYNC_CHAR_2 0x62
 
 #define UBX_GNSS_ID_GPS 0
+#define UBX_GNSS_ID_SBAS 1
 #define UBX_GNSS_ID_GAL 2
 #define UBX_GNSS_ID_BDS 3
+#define UBX_GNSS_ID_IMES 4
+#define UBX_GNSS_ID_QZSS 5
 #define UBX_GNSS_ID_GLO 6
 
 #endif /* SWIFTNAV_UBX_CONSTANTS_H */
