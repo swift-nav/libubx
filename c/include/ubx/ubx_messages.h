@@ -82,7 +82,7 @@ typedef struct {
   uint16_t length;
   double rcv_tow;
   uint16_t rcv_wn;
-  uint8_t leap_second;
+  int8_t leap_second;
   uint8_t num_meas;
   uint8_t rec_status;
   uint8_t version;
