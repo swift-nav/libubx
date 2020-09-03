@@ -45,6 +45,10 @@ typedef enum ubx_rc_e {
 /* Arbitrarily defined, spec leaves this unbounded */
 #define ESF_DATA_MAX_COUNT 128
 
+/* For forwarding only, no decoding */
+#define UBX_CLASS_MON 0x0A
+#define UBX_MSG_MON_HW 0x09
+
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
