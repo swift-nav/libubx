@@ -26,32 +26,32 @@
 #define FLOAT_EPS 1e-6
 
 void msg_hnr_pvt_equals(const ubx_hnr_pvt *msg_in, const ubx_hnr_pvt *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_uint_eq(msg_in->year, msg_in->year);
-  ck_assert_uint_eq(msg_in->month, msg_in->month);
-  ck_assert_uint_eq(msg_in->day, msg_in->day);
-  ck_assert_uint_eq(msg_in->hour, msg_in->hour);
-  ck_assert_uint_eq(msg_in->min, msg_in->min);
-  ck_assert_uint_eq(msg_in->sec, msg_in->sec);
-  ck_assert_uint_eq(msg_in->valid, msg_in->valid);
-  ck_assert_uint_eq(msg_in->nano, msg_in->nano);
-  ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
-  ck_assert_uint_eq(msg_in->flags, msg_in->flags);
-  ck_assert_uint_eq(msg_in->lon, msg_in->lon);
-  ck_assert_uint_eq(msg_in->lat, msg_in->lat);
-  ck_assert_uint_eq(msg_in->height, msg_in->height);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->year, msg_out->year);
+  ck_assert_uint_eq(msg_in->month, msg_out->month);
+  ck_assert_uint_eq(msg_in->day, msg_out->day);
+  ck_assert_uint_eq(msg_in->hour, msg_out->hour);
+  ck_assert_uint_eq(msg_in->min, msg_out->min);
+  ck_assert_uint_eq(msg_in->sec, msg_out->sec);
+  ck_assert_uint_eq(msg_in->valid, msg_out->valid);
+  ck_assert_uint_eq(msg_in->nano, msg_out->nano);
+  ck_assert_uint_eq(msg_in->fix_type, msg_out->fix_type);
+  ck_assert_uint_eq(msg_in->flags, msg_out->flags);
+  ck_assert_uint_eq(msg_in->lon, msg_out->lon);
+  ck_assert_uint_eq(msg_in->lat, msg_out->lat);
+  ck_assert_uint_eq(msg_in->height, msg_out->height);
   ck_assert_uint_eq(msg_in->height_mean_sea_level,
-                    msg_in->height_mean_sea_level);
-  ck_assert_uint_eq(msg_in->ground_speed, msg_in->ground_speed);
-  ck_assert_uint_eq(msg_in->speed, msg_in->speed);
-  ck_assert_uint_eq(msg_in->heading_of_motion, msg_in->heading_of_motion);
-  ck_assert_uint_eq(msg_in->heading_vehicle, msg_in->heading_vehicle);
-  ck_assert_uint_eq(msg_in->horizontal_accuracy, msg_in->horizontal_accuracy);
-  ck_assert_uint_eq(msg_in->vertical_accuracy, msg_in->vertical_accuracy);
-  ck_assert_uint_eq(msg_in->speed_acc, msg_in->speed_acc);
-  ck_assert_uint_eq(msg_in->heading_acc, msg_in->heading_acc);
+                    msg_out->height_mean_sea_level);
+  ck_assert_uint_eq(msg_in->ground_speed, msg_out->ground_speed);
+  ck_assert_uint_eq(msg_in->speed, msg_out->speed);
+  ck_assert_uint_eq(msg_in->heading_of_motion, msg_out->heading_of_motion);
+  ck_assert_uint_eq(msg_in->heading_vehicle, msg_out->heading_vehicle);
+  ck_assert_uint_eq(msg_in->horizontal_accuracy, msg_out->horizontal_accuracy);
+  ck_assert_uint_eq(msg_in->vertical_accuracy, msg_out->vertical_accuracy);
+  ck_assert_uint_eq(msg_in->speed_acc, msg_out->speed_acc);
+  ck_assert_uint_eq(msg_in->heading_acc, msg_out->heading_acc);
 }
 
 void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
@@ -83,91 +83,110 @@ void msg_rawx_equals(const ubx_rxm_rawx *msg_in, const ubx_rxm_rawx *msg_out) {
 }
 
 void msg_nav_att_equals(const ubx_nav_att *msg_in, const ubx_nav_att *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->length, msg_in->length);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_uint_eq(msg_in->version, msg_in->version);
-  ck_assert_uint_eq(msg_in->pitch, msg_in->pitch);
-  ck_assert_uint_eq(msg_in->roll, msg_in->roll);
-  ck_assert_uint_eq(msg_in->heading, msg_in->heading);
-  ck_assert_uint_eq(msg_in->acc_pitch, msg_in->acc_pitch);
-  ck_assert_uint_eq(msg_in->acc_roll, msg_in->acc_roll);
-  ck_assert_uint_eq(msg_in->acc_heading, msg_in->acc_heading);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->version, msg_out->version);
+  ck_assert_uint_eq(msg_in->pitch, msg_out->pitch);
+  ck_assert_uint_eq(msg_in->roll, msg_out->roll);
+  ck_assert_uint_eq(msg_in->heading, msg_out->heading);
+  ck_assert_uint_eq(msg_in->acc_pitch, msg_out->acc_pitch);
+  ck_assert_uint_eq(msg_in->acc_roll, msg_out->acc_roll);
+  ck_assert_uint_eq(msg_in->acc_heading, msg_out->acc_heading);
 }
 
 void msg_nav_clock_equals(const ubx_nav_clock *msg_in,
                           const ubx_nav_clock *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->length, msg_in->length);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_uint_eq(msg_in->clk_bias, msg_in->clk_bias);
-  ck_assert_uint_eq(msg_in->clk_drift, msg_in->clk_drift);
-  ck_assert_uint_eq(msg_in->time_acc, msg_in->time_acc);
-  ck_assert_uint_eq(msg_in->freq_acc, msg_in->freq_acc);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->clk_bias, msg_out->clk_bias);
+  ck_assert_uint_eq(msg_in->clk_drift, msg_out->clk_drift);
+  ck_assert_uint_eq(msg_in->time_acc, msg_out->time_acc);
+  ck_assert_uint_eq(msg_in->freq_acc, msg_out->freq_acc);
 }
 
 void msg_nav_pvt_equals(const ubx_nav_pvt *msg_in, const ubx_nav_pvt *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_uint_eq(msg_in->year, msg_in->year);
-  ck_assert_uint_eq(msg_in->month, msg_in->month);
-  ck_assert_uint_eq(msg_in->day, msg_in->day);
-  ck_assert_uint_eq(msg_in->hour, msg_in->hour);
-  ck_assert_uint_eq(msg_in->min, msg_in->min);
-  ck_assert_uint_eq(msg_in->sec, msg_in->sec);
-  ck_assert_uint_eq(msg_in->valid, msg_in->valid);
-  ck_assert_uint_eq(msg_in->time_acc, msg_in->time_acc);
-  ck_assert_uint_eq(msg_in->nano, msg_in->nano);
-  ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
-  ck_assert_uint_eq(msg_in->flags, msg_in->flags);
-  ck_assert_uint_eq(msg_in->flags2, msg_in->flags2);
-  ck_assert_uint_eq(msg_in->flags3, msg_in->flags3);
-  ck_assert_uint_eq(msg_in->num_sats, msg_in->num_sats);
-  ck_assert_uint_eq(msg_in->lon, msg_in->lon);
-  ck_assert_uint_eq(msg_in->lat, msg_in->lat);
-  ck_assert_uint_eq(msg_in->height, msg_in->height);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->year, msg_out->year);
+  ck_assert_uint_eq(msg_in->month, msg_out->month);
+  ck_assert_uint_eq(msg_in->day, msg_out->day);
+  ck_assert_uint_eq(msg_in->hour, msg_out->hour);
+  ck_assert_uint_eq(msg_in->min, msg_out->min);
+  ck_assert_uint_eq(msg_in->sec, msg_out->sec);
+  ck_assert_uint_eq(msg_in->valid, msg_out->valid);
+  ck_assert_uint_eq(msg_in->time_acc, msg_out->time_acc);
+  ck_assert_uint_eq(msg_in->nano, msg_out->nano);
+  ck_assert_uint_eq(msg_in->fix_type, msg_out->fix_type);
+  ck_assert_uint_eq(msg_in->flags, msg_out->flags);
+  ck_assert_uint_eq(msg_in->flags2, msg_out->flags2);
+  ck_assert_uint_eq(msg_in->flags3, msg_out->flags3);
+  ck_assert_uint_eq(msg_in->num_sats, msg_out->num_sats);
+  ck_assert_uint_eq(msg_in->lon, msg_out->lon);
+  ck_assert_uint_eq(msg_in->lat, msg_out->lat);
+  ck_assert_uint_eq(msg_in->height, msg_out->height);
   ck_assert_uint_eq(msg_in->height_mean_sea_level,
-                    msg_in->height_mean_sea_level);
-  ck_assert_uint_eq(msg_in->horizontal_accuracy, msg_in->horizontal_accuracy);
-  ck_assert_uint_eq(msg_in->vertical_accuracy, msg_in->vertical_accuracy);
-  ck_assert_uint_eq(msg_in->vel_north, msg_in->vel_north);
-  ck_assert_uint_eq(msg_in->vel_east, msg_in->vel_east);
-  ck_assert_uint_eq(msg_in->vel_down, msg_in->vel_down);
-  ck_assert_uint_eq(msg_in->ground_speed, msg_in->ground_speed);
-  ck_assert_uint_eq(msg_in->heading_of_motion, msg_in->heading_of_motion);
-  ck_assert_uint_eq(msg_in->PDOP, msg_in->PDOP);
-  ck_assert_uint_eq(msg_in->heading_vehicle, msg_in->heading_vehicle);
-  ck_assert_uint_eq(msg_in->magnetic_declination, msg_in->magnetic_declination);
+                    msg_out->height_mean_sea_level);
+  ck_assert_uint_eq(msg_in->horizontal_accuracy, msg_out->horizontal_accuracy);
+  ck_assert_uint_eq(msg_in->vertical_accuracy, msg_out->vertical_accuracy);
+  ck_assert_uint_eq(msg_in->vel_north, msg_out->vel_north);
+  ck_assert_uint_eq(msg_in->vel_east, msg_out->vel_east);
+  ck_assert_uint_eq(msg_in->vel_down, msg_out->vel_down);
+  ck_assert_uint_eq(msg_in->ground_speed, msg_out->ground_speed);
+  ck_assert_uint_eq(msg_in->heading_of_motion, msg_out->heading_of_motion);
+  ck_assert_uint_eq(msg_in->PDOP, msg_out->PDOP);
+  ck_assert_uint_eq(msg_in->heading_vehicle, msg_out->heading_vehicle);
+  ck_assert_uint_eq(msg_in->magnetic_declination,
+                    msg_out->magnetic_declination);
   ck_assert_uint_eq(msg_in->magnetic_declination_accuracy,
-                    msg_in->magnetic_declination_accuracy);
+                    msg_out->magnetic_declination_accuracy);
 }
 
 void msg_nav_velecef_equals(const ubx_nav_velecef *msg_in,
                             const ubx_nav_velecef *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_int_eq(msg_in->ecefVX, msg_in->ecefVX);
-  ck_assert_int_eq(msg_in->ecefVY, msg_in->ecefVY);
-  ck_assert_int_eq(msg_in->ecefVZ, msg_in->ecefVZ);
-  ck_assert_uint_eq(msg_in->speed_acc, msg_in->speed_acc);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_int_eq(msg_in->ecefVX, msg_out->ecefVX);
+  ck_assert_int_eq(msg_in->ecefVY, msg_out->ecefVY);
+  ck_assert_int_eq(msg_in->ecefVZ, msg_out->ecefVZ);
+  ck_assert_uint_eq(msg_in->speed_acc, msg_out->speed_acc);
+}
+
+void msg_nav_sat_equals(const ubx_nav_sat *msg_in, const ubx_nav_sat *msg_out) {
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->version, msg_out->version);
+  ck_assert_uint_eq(msg_in->num_svs, msg_out->num_svs);
+  ck_assert_uint_lt(msg_in->num_svs, NAV_DATA_MAX_COUNT);
+  for (int i = 0; i < msg_in->num_svs; i++) {
+    ck_assert_uint_eq(msg_in->data[i].gnss_id, msg_out->data[i].gnss_id);
+    ck_assert_uint_eq(msg_in->data[i].sv_id, msg_out->data[i].sv_id);
+    ck_assert_uint_eq(msg_in->data[i].cno, msg_out->data[i].cno);
+    ck_assert_int_eq(msg_in->data[i].elev, msg_out->data[i].elev);
+    ck_assert_int_eq(msg_in->data[i].azim, msg_out->data[i].azim);
+    ck_assert_int_eq(msg_in->data[i].pr_res, msg_out->data[i].pr_res);
+    ck_assert_uint_eq(msg_in->data[i].flags, msg_out->data[i].flags);
+  }
 }
 
 void msg_nav_status_equals(const ubx_nav_status *msg_in,
                            const ubx_nav_status *msg_out) {
-  ck_assert_uint_eq(msg_in->class_id, msg_in->class_id);
-  ck_assert_uint_eq(msg_in->msg_id, msg_in->msg_id);
-  ck_assert_uint_eq(msg_in->i_tow, msg_in->i_tow);
-  ck_assert_uint_eq(msg_in->msss, msg_in->msss);
-  ck_assert_uint_eq(msg_in->ttff_ms, msg_in->ttff_ms);
-  ck_assert_uint_eq(msg_in->status_flags_ext, msg_in->status_flags_ext);
-  ck_assert_uint_eq(msg_in->status_flags, msg_in->status_flags);
-  ck_assert_uint_eq(msg_in->fix_status, msg_in->fix_status);
-  ck_assert_uint_eq(msg_in->fix_type, msg_in->fix_type);
-  ck_assert_uint_eq(msg_in->length, msg_in->length);
+  ck_assert_uint_eq(msg_in->class_id, msg_out->class_id);
+  ck_assert_uint_eq(msg_in->msg_id, msg_out->msg_id);
+  ck_assert_uint_eq(msg_in->i_tow, msg_out->i_tow);
+  ck_assert_uint_eq(msg_in->msss, msg_out->msss);
+  ck_assert_uint_eq(msg_in->ttff_ms, msg_out->ttff_ms);
+  ck_assert_uint_eq(msg_in->status_flags_ext, msg_out->status_flags_ext);
+  ck_assert_uint_eq(msg_in->status_flags, msg_out->status_flags);
+  ck_assert_uint_eq(msg_in->fix_status, msg_out->fix_status);
+  ck_assert_uint_eq(msg_in->fix_type, msg_out->fix_type);
+  ck_assert_uint_eq(msg_in->length, msg_out->length);
 }
 
 void msg_mga_gps_eph_equals(const ubx_mga_gps_eph *msg_in,
@@ -428,7 +447,7 @@ START_TEST(test_ubx_nav_att) {
   msg.length = 32;
 
   msg.i_tow = 12345;
-  msg.version = 0;
+  msg.version = 2;
   msg.roll = -1;
   msg.pitch = -2;
   msg.heading = -3;
@@ -541,6 +560,49 @@ START_TEST(test_ubx_nav_velecef) {
   int8_t ret = ubx_decode_nav_velecef(buff, &msg_nav_velecef_out);
   ck_assert_int_eq(RC_OK, ret);
   msg_nav_velecef_equals(&msg, &msg_nav_velecef_out);
+}
+
+END_TEST
+
+START_TEST(test_ubx_nav_sat) {
+  ubx_nav_sat msg;
+
+  msg.class_id = 0x01;
+  msg.msg_id = 0x35;
+  msg.length = 44;
+  msg.i_tow = 433200;
+  msg.version = 1;
+  msg.num_svs = 3;
+  msg.reserved1 = 0x0000;
+  msg.data[0].gnss_id = 0;
+  msg.data[0].sv_id = 0;
+  msg.data[0].cno = 3;
+  msg.data[0].elev = -1;
+  msg.data[0].azim = 1;
+  msg.data[0].pr_res = 3;
+  msg.data[0].flags = 0x00000000;
+  msg.data[1].gnss_id = 1;
+  msg.data[1].sv_id = 1;
+  msg.data[1].cno = 4;
+  msg.data[1].elev = 1;
+  msg.data[1].azim = 4;
+  msg.data[1].pr_res = 5;
+  msg.data[1].flags = 0x00000000;
+  msg.data[2].gnss_id = 2;
+  msg.data[2].sv_id = 2;
+  msg.data[2].cno = 20;
+  msg.data[2].elev = 3;
+  msg.data[2].azim = 60;
+  msg.data[2].pr_res = 2;
+  msg.data[2].flags = 0x00000000;
+
+  uint8_t buff[1216];
+  memset(buff, 0, 1216);
+  ck_assert_uint_eq(ubx_encode_nav_sat(&msg, buff), 4 + msg.length);
+  ubx_nav_sat msg_nav_sat_out;
+  int8_t ret = ubx_decode_nav_sat(buff, &msg_nav_sat_out);
+  ck_assert_int_eq(RC_OK, ret);
+  msg_nav_sat_equals(&msg, &msg_nav_sat_out);
 }
 
 END_TEST
@@ -692,6 +754,7 @@ Suite *ubx_suite(void) {
   tcase_add_test(tc_ubx, test_ubx_nav_clock);
   tcase_add_test(tc_ubx, test_ubx_nav_pvt);
   tcase_add_test(tc_ubx, test_ubx_nav_velecef);
+  tcase_add_test(tc_ubx, test_ubx_nav_sat);
   tcase_add_test(tc_ubx, test_ubx_nav_status);
   tcase_add_test(tc_ubx, test_ubx_mga_gps_eph);
   tcase_add_test(tc_ubx, test_ubx_rxm_sfrbx);

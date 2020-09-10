@@ -224,7 +224,7 @@ uint16_t ubx_encode_nav_att(const ubx_nav_att *msg_nav_att, uint8_t buff[]) {
 
   memcpy(&buff[index], &msg_nav_att->i_tow, 4);
   index += 4;
-  memcpy(&buff[index], &msg_nav_att->reserved, 1);
+  memcpy(&buff[index], &msg_nav_att->version, 1);
   index += 1;
   /* reserved */
   for (int i = 0; i < 3; i++) {
@@ -396,6 +396,58 @@ uint16_t ubx_encode_nav_velecef(const ubx_nav_velecef *msg_nav_velecef,
   index += 4;
   memcpy(&buff[index], &msg_nav_velecef->speed_acc, 4);
   index += 4;
+
+  return index;
+}
+
+/** Serialize the ubx_nav_sat message
+ *
+ * \param buff outgoing data buffer
+ * \param msg_nav_sat UBX nav sat message to serialize
+ * \return number of bytes serialized
+ */
+uint16_t ubx_encode_nav_sat(const ubx_nav_sat *msg_nav_sat, uint8_t buff[]) {
+  assert(msg_nav_sat);
+
+  uint16_t index = 0;
+  memcpy(&buff[index], &msg_nav_sat->class_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_sat->msg_id, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_sat->length, 2);
+  index += 2;
+
+  memcpy(&buff[index], &msg_nav_sat->i_tow, 4);
+  index += 4;
+  memcpy(&buff[index], &msg_nav_sat->version, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_sat->num_svs, 1);
+  index += 1;
+  memcpy(&buff[index], &msg_nav_sat->reserved1, 2);
+  index += 2;
+
+  for (int i = 0; i < msg_nav_sat->num_svs; i++) {
+    if (i >= NAV_DATA_MAX_COUNT) {
+      break;
+    }
+
+    const ubx_nav_sat_data *data = &msg_nav_sat->data[i];
+
+    memcpy(&buff[index], &data->gnss_id, 1);
+    index += 1;
+    memcpy(&buff[index], &data->sv_id, 1);
+    index += 1;
+    memcpy(&buff[index], &data->cno, 1);
+    index += 1;
+    memcpy(&buff[index], &data->elev, 1);
+    index += 1;
+    memcpy(&buff[index], &data->azim, 2);
+    index += 2;
+    memcpy(&buff[index], &data->pr_res, 2);
+    index += 2;
+    memcpy(&buff[index], &data->flags, 4);
+    index += 4;
+  }
 
   return index;
 }

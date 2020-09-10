@@ -32,7 +32,10 @@ typedef enum ubx_rc_e {
 #define UBX_MSG_NAV_CLOCK 0x22
 #define UBX_MSG_NAV_PVT 0x07
 #define UBX_MSG_NAV_VELECEF 0x11
+#define UBX_MSG_NAV_SAT 0x35
 #define UBX_MSG_NAV_STATUS 0x03
+/* Arbitrarily defined, accomodates 100 satellites */
+#define NAV_DATA_MAX_COUNT 100
 
 #define UBX_CLASS_RXM 0x02
 #define UBX_MSG_RXM_RAWX 0x15
@@ -219,6 +222,27 @@ typedef struct {
   int32_t ecefVZ;
   uint32_t speed_acc;
 } ubx_nav_velecef;
+
+typedef struct {
+  uint8_t gnss_id;
+  uint8_t sv_id;
+  uint8_t cno;
+  int8_t elev;
+  int16_t azim;
+  int16_t pr_res;
+  uint32_t flags;
+} ubx_nav_sat_data;
+
+typedef struct {
+  uint8_t class_id;
+  uint8_t msg_id;
+  uint16_t length;
+  uint32_t i_tow;
+  uint8_t version;
+  uint8_t num_svs;
+  uint16_t reserved1;
+  ubx_nav_sat_data data[NAV_DATA_MAX_COUNT];
+} ubx_nav_sat;
 
 typedef struct {
   uint8_t class_id;

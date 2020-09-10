@@ -28,6 +28,7 @@ ubx_rc ubx_decode_nav_clock(const uint8_t buff[], ubx_nav_clock *msg_nav_clock);
 ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt);
 ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
                               ubx_nav_velecef *msg_nav_velecef);
+ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat);
 ubx_rc ubx_decode_nav_status(const uint8_t buff[],
                              ubx_nav_status *msg_nav_status);
 ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],

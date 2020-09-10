@@ -280,7 +280,7 @@ ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
 
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->i_tow);
   byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->reserved);
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->version);
   byte += 1;
   /* reserved */
   for (int i = 0; i < 3; i++) {
@@ -481,6 +481,67 @@ ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->speed_acc);
   byte += 4;
+
+  return RC_OK;
+}
+
+/** Deserialize the ubx_nav_sat message
+ *
+ * \param buff incoming data buffer
+ * \param msg_nav_sat UBX nav sat message
+ * \return UBX return code
+ */
+ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat) {
+  assert(msg_nav_sat);
+
+  uint16_t byte = 0;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->class_id);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->msg_id);
+  byte += 1;
+
+  if (msg_nav_sat->class_id != UBX_CLASS_NAV) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  if (msg_nav_sat->msg_id != UBX_MSG_NAV_SAT) {
+    return RC_MESSAGE_TYPE_MISMATCH;
+  }
+
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_sat->length);
+  byte += 2;
+
+  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_sat->i_tow);
+  byte += 4;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->version);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->num_svs);
+  byte += 1;
+  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_sat->reserved1);
+  byte += 2;
+
+  for (int i = 0; i < msg_nav_sat->num_svs; i++) {
+    if (i >= NAV_DATA_MAX_COUNT) {
+      break;
+    }
+
+    ubx_nav_sat_data *data = &msg_nav_sat->data[i];
+
+    ubx_get_bytes(buff, byte, 1, (u8 *)&data->gnss_id);
+    byte += 1;
+    ubx_get_bytes(buff, byte, 1, (u8 *)&data->sv_id);
+    byte += 1;
+    ubx_get_bytes(buff, byte, 1, (u8 *)&data->cno);
+    byte += 1;
+    ubx_get_bytes(buff, byte, 1, (u8 *)&data->elev);
+    byte += 1;
+    ubx_get_bytes(buff, byte, 2, (u8 *)&data->azim);
+    byte += 2;
+    ubx_get_bytes(buff, byte, 2, (u8 *)&data->pr_res);
+    byte += 2;
+    ubx_get_bytes(buff, byte, 4, (u8 *)&data->flags);
+    byte += 4;
+  }
 
   return RC_OK;
 }
