@@ -37,7 +37,7 @@ function build() {
   # Create and enter build directory.
   cd c
   mkdir -p build && cd build
-  cmake ../
+  $CMAKE ../
   make -j4 VERBOSE=1
   if [ "$TEST_SUITE" == "lint" ]; then
     make clang-format-all && check_format_errors
