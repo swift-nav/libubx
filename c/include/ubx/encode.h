@@ -22,8 +22,8 @@
 extern "C" {
 #endif
 
-#include "ubx/ubx_messages.h"
 #include <ubx/constants.h>
+#include <ubx/ubx_messages.h>
 
 uint16_t ubx_encode_hnr_pvt(const ubx_hnr_pvt *msg_hnr_pvt, uint8_t buff[]);
 uint16_t ubx_encode_rawx(const ubx_rxm_rawx *msg_rawx, uint8_t buff[]);

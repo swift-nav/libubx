@@ -298,7 +298,7 @@ ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_pitch);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_heading);
-  byte += 4;
+  byte += 4;  // NOLINT
 
   return RC_OK;
 }
@@ -339,7 +339,7 @@ ubx_rc ubx_decode_nav_clock(const uint8_t buff[],
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->time_acc);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->freq_acc);
-  byte += 4;
+  byte += 4;  // NOLINT
 
   return RC_OK;
 }
@@ -438,9 +438,11 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
   byte += 4;
   ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_pvt->magnetic_declination);
   byte += 2;
-  ubx_get_bytes(buff, byte, 2,
-                (u8 *)&msg_nav_pvt->magnetic_declination_accuracy);
-  byte += 2;
+  // clang-format off
+  ubx_get_bytes(
+      buff, byte, 2, (u8 *)&msg_nav_pvt->magnetic_declination_accuracy);
+  byte += 2; // NOLINT
+  // clang-format on
   return RC_OK;
 }
 
@@ -480,7 +482,7 @@ ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVZ);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->speed_acc);
-  byte += 4;
+  byte += 4;  // NOLINT
 
   return RC_OK;
 }
@@ -586,7 +588,7 @@ ubx_rc ubx_decode_nav_status(const uint8_t buff[],
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->ttff_ms);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->msss);
-  byte += 4;
+  byte += 4;  // NOLINT
 
   return RC_OK;
 }
@@ -787,7 +789,7 @@ ubx_rc ubx_decode_esf_ins(const uint8_t buff[], ubx_esf_ins *msg_esf_ins) {
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->y_accel);
   byte += 4;
   ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->z_accel);
-  byte += 4;
+  byte += 4;  // NOLINT
 
   return RC_OK;
 }
@@ -834,7 +836,7 @@ ubx_rc ubx_decode_esf_meas(const uint8_t buff[], ubx_esf_meas *msg_esf_meas) {
   bool has_calib = msg_esf_meas->flags & 0x8;
   if (has_calib) {
     ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->calib_tag);
-    byte += 4;
+    byte += 4;  // NOLINT
   }
 
   return RC_OK;

@@ -41,8 +41,7 @@ function build() {
   make -j4 VERBOSE=1
   if [ "$TEST_SUITE" == "lint" ]; then
     make clang-format-all && check_format_errors
-    ## keep clang-tidy disabled until the findings are addressed
-    # make clang-tidy-all && check_tidy_errors
+    make clang-tidy-all && check_tidy_errors
   fi
   cd ../
 }

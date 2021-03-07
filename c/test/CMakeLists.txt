@@ -15,4 +15,5 @@ swift_add_test(test_libubx
         LINK ubx check Threads::Threads
         )
 
-target_compile_options(test_libubx PRIVATE "-std=gnu99")
+swift_set_language_standards(test_libubx)
+swift_set_compile_options(test_libubx REMOVE -Wconversion)

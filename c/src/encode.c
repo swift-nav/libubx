@@ -612,7 +612,7 @@ uint16_t ubx_encode_rxm_sfrbx(const ubx_rxm_sfrbx *msg_rxm_sfrbx,
   /* reserved */
   memcpy(&buff[index], &msg_rxm_sfrbx->reserved2, 1);
   index += 1;
-  memset(&buff[index], 0, sizeof(&msg_rxm_sfrbx->data_words));
+  memset(&buff[index], 0, sizeof(msg_rxm_sfrbx->data_words));
   for (int i = 0; i < msg_rxm_sfrbx->num_words; i++) {
     memcpy(&buff[index], &msg_rxm_sfrbx->data_words[i], 4);
     index += 4;

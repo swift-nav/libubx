@@ -325,7 +325,6 @@ START_TEST(test_ubx_hnr_pvt) {
 END_TEST
 
 START_TEST(test_ubx_rxm_rawx) {
-
   ubx_rxm_rawx msg;
 
   msg.class_id = 0x02;
@@ -393,7 +392,6 @@ START_TEST(test_ubx_rxm_rawx) {
 END_TEST
 
 START_TEST(test_ubx_mga_gps_eph) {
-
   ubx_mga_gps_eph msg;
 
   msg.class_id = 0x13;
@@ -633,7 +631,6 @@ START_TEST(test_ubx_nav_status) {
 END_TEST
 
 START_TEST(test_ubx_rxm_sfrbx) {
-
   ubx_rxm_sfrbx msg;
 
   msg.class_id = 0x02;
@@ -662,7 +659,6 @@ START_TEST(test_ubx_rxm_sfrbx) {
 END_TEST
 
 START_TEST(test_ubx_esf_ins) {
-
   ubx_esf_ins msg;
 
   msg.class_id = 0x10;
@@ -691,7 +687,6 @@ START_TEST(test_ubx_esf_ins) {
 END_TEST
 
 START_TEST(test_ubx_esf_meas) {
-
   ubx_esf_meas msg;
 
   msg.class_id = 0x10;
@@ -720,7 +715,6 @@ START_TEST(test_ubx_esf_meas) {
 END_TEST
 
 START_TEST(test_ubx_esf_raw) {
-
   ubx_esf_raw msg;
 
   msg.class_id = 0x10;
