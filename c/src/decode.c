@@ -13,6 +13,8 @@
 #include <swiftnav/bits.h>
 #include <ubx/decode.h>
 
+#include "decode_helpers.h"
+
 // UBX protocol is little-endian. This file assumes that the host system is also
 // little endian.
 // TODO(yizhe) write endian-independent code
@@ -37,74 +39,18 @@ void ubx_checksum(const uint8_t buff[], size_t length, uint8_t *checksum) {
   }
 }
 
-/** Get bit field from buffer as an unsigned long integer.
- * Unpacks `len` bits at bit position `pos` from the start of the buffer.
- * Maximum bit field length is 64 bits, i.e. `len <= 64`.
- *
- * \param buff
- * \param pos Position in buffer of start of bit field in bits.
- * \param len Length of bit field in bits.
- * \return Bit field as an unsigned value.
- */
-uint64_t ubx_getbitul(const uint8_t *buff, uint32_t pos, uint8_t len) {
-  uint64_t bits = 0;
-
-  for (uint32_t i = pos; i < pos + len; i++) {
-    bits = (bits << 1) + ((buff[i / 8] >> (7 - i % 8)) & 1u);
-  }
-
-  return bits;
-}
-
-/** Get bit field from buffer as a signed integer.
- * Unpacks `len` bits at bit position `pos` from the start of the buffer.
- * Maximum bit field length is 64 bits, i.e. `len <= 64`.
- *
- * This function sign extends the `len` bit field to a signed 64 bit integer.
- *
- * \param buff
- * \param pos Position in buffer of start of bit field in bits.
- * \param len Length of bit field in bits.
- * \return Bit field as a signed value.
- */
-int64_t ubx_getbitsl(const uint8_t *buff, uint32_t pos, uint8_t len) {
-  int64_t bits = (int64_t)ubx_getbitul(buff, pos, len);
-
-  /* Sign extend, taken from:
-   * http://graphics.stanford.edu/~seander/bithacks.html#VariableSignExtend
-   */
-  int64_t m = ((uint64_t)1) << (len - 1);
-  return (bits ^ m) - m;
-}
-
-/** Write `len` bytes from buffer `buff` into destination `dest`
- * UBX is little-endian, so directly using ubx_getbitul swaps the endian-ness.
- * Assumes host system is little-endian
- *
- * \param buff
- * \param index Index in buffer of start of payload in bytes.
- * \param len Number of bytes to retrieve.
- */
-void ubx_get_bytes(const uint8_t *buff, uint32_t index, uint8_t len, u8 *dest) {
-  for (int i = 0; i < len; i++) {
-    dest[i] = ubx_getbitul(buff, (index + i) * 8, 8);
-  }
-}
-
 /** Deserialize the ubx_hnr_pvt message
  *
  * \param buff incoming data buffer
  * \param msg_hnr_pvt UBX hnr pvt message
  * \return UBX return code
  */
-ubx_rc ubx_decode_hnr_pvt(const uint8_t buff[], ubx_hnr_pvt *msg_hnr_pvt) {
+ubx_rc ubx_decode_hnr_pvt_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_hnr_pvt *msg_hnr_pvt) {
   assert(msg_hnr_pvt);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->msg_id, 1);
 
   if (msg_hnr_pvt->class_id != UBX_CLASS_HNR) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -114,64 +60,38 @@ ubx_rc ubx_decode_hnr_pvt(const uint8_t buff[], ubx_hnr_pvt *msg_hnr_pvt) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_hnr_pvt->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_hnr_pvt->year);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->month);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->day);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->hour);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->min);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->sec);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->valid);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->nano);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->fix_type);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->flags);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->year, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->month, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->day, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->hour, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->min, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->sec, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->valid, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->nano, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->fix_type, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->flags, 1);
   /* reserved */
   for (int i = 0; i < 2; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->reserved1[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->reserved1[i], 1);
   }
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->lon);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->lat);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->height);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->height_mean_sea_level);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->ground_speed);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->speed);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_of_motion);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_vehicle);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->horizontal_accuracy);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->vertical_accuracy);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->speed_acc);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_hnr_pvt->heading_acc);
-  byte += 4;
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->lon, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->lat, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->height, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->height_mean_sea_level, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->ground_speed, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->speed, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->heading_of_motion, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->heading_vehicle, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->horizontal_accuracy, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->vertical_accuracy, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->speed_acc, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->heading_acc, 4);
   /* reserved */
   for (int i = 0; i < 4; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_hnr_pvt->reserved2[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_hnr_pvt->reserved2[i], 1);
   }
 
   return RC_OK;
@@ -183,13 +103,11 @@ ubx_rc ubx_decode_hnr_pvt(const uint8_t buff[], ubx_hnr_pvt *msg_hnr_pvt) {
  * \param msg_rawx UBX rawx message
  * \return UBX return code
  */
-ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx) {
+ubx_rc ubx_decode_rxm_rawx_bytestream(swiftnav_bytestream_t *buff,
+                                      ubx_rxm_rawx *msg_rawx) {
   assert(msg_rawx);
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->msg_id, 1);
 
   if (msg_rawx->class_id != 0x02) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -199,55 +117,33 @@ ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_rawx->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->length, 2);
 
-  ubx_get_bytes(buff, byte, 8, (u8 *)&msg_rawx->rcv_tow);
-  byte += 8;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_rawx->rcv_wn);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->leap_second);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->num_meas);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->rec_status);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->version);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->rcv_tow, 8);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->rcv_wn, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->leap_second, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->num_meas, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->rec_status, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rawx->version, 1);
   for (int i = 0; i < 2; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->reserved1[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->reserved1[i], 1);
   }
 
   for (int i = 0; i < msg_rawx->num_meas; i++) {
-    ubx_get_bytes(buff, byte, 8, (u8 *)&msg_rawx->pseudorange_m[i]);
-    byte += 8;
-    ubx_get_bytes(buff, byte, 8, (u8 *)&msg_rawx->carrier_phase_cycles[i]);
-    byte += 8;
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_rawx->doppler_hz[i]);
-    byte += 4;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->gnss_id[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->sat_id[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->sig_id[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->freq_id[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 2, (u8 *)&msg_rawx->lock_time[i]);
-    byte += 2;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->cno_dbhz[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->pr_std_m[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->cp_std_cycles[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->doppler_std_hz[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->track_state[i]);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rawx->reserved2[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->pseudorange_m[i], 8);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->carrier_phase_cycles[i], 8);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->doppler_hz[i], 4);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->gnss_id[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->sat_id[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->sig_id[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->freq_id[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->lock_time[i], 2);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->cno_dbhz[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->pr_std_m[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->cp_std_cycles[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->doppler_std_hz[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->track_state[i], 1);
+    BYTESTREAM_DECODE_BYTES(buff, msg_rawx->reserved2[i], 1);
   }
   return RC_OK;
 }
@@ -258,14 +154,12 @@ ubx_rc ubx_decode_rxm_rawx(const uint8_t buff[], ubx_rxm_rawx *msg_rawx) {
  * \param msg_nav_att UBX nav att message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
+ubx_rc ubx_decode_nav_att_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_nav_att *msg_nav_att) {
   assert(msg_nav_att);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->msg_id, 1);
 
   if (msg_nav_att->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -275,30 +169,20 @@ ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_att->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->version);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->version, 1);
   /* reserved */
   for (int i = 0; i < 3; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_att->reserved[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->reserved[i], 1);
   }
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->roll);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->pitch);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->heading);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_roll);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_pitch);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_att->acc_heading);
-  byte += 4;  // NOLINT
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->roll, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->pitch, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->heading, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->acc_roll, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->acc_pitch, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_att->acc_heading, 4);
 
   return RC_OK;
 }
@@ -309,15 +193,12 @@ ubx_rc ubx_decode_nav_att(const uint8_t buff[], ubx_nav_att *msg_nav_att) {
  * \param msg_nav_clock UBX nav clock message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_clock(const uint8_t buff[],
-                            ubx_nav_clock *msg_nav_clock) {
+ubx_rc ubx_decode_nav_clock_bytestream(swiftnav_bytestream_t *buff,
+                                       ubx_nav_clock *msg_nav_clock) {
   assert(msg_nav_clock);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_clock->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_clock->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->msg_id, 1);
 
   if (msg_nav_clock->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -327,19 +208,13 @@ ubx_rc ubx_decode_nav_clock(const uint8_t buff[],
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_clock->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->clk_bias);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->clk_drift);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->time_acc);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_clock->freq_acc);
-  byte += 4;  // NOLINT
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->clk_bias, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->clk_drift, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->time_acc, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_clock->freq_acc, 4);
 
   return RC_OK;
 }
@@ -350,14 +225,12 @@ ubx_rc ubx_decode_nav_clock(const uint8_t buff[],
  * \param msg_nav_pvt UBX nav pvt message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
+ubx_rc ubx_decode_nav_pvt_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_nav_pvt *msg_nav_pvt) {
   assert(msg_nav_pvt);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->msg_id, 1);
 
   if (msg_nav_pvt->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -367,82 +240,49 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_pvt->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_pvt->year);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->month);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->day);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->hour);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->min);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->sec);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->valid);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->time_acc);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->nano);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->fix_type);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->flags);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->flags2);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->num_sats);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->lon);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->lat);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->height);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->height_mean_sea_level);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->horizontal_accuracy);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->vertical_accuracy);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->vel_north);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->vel_east);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->vel_down);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->ground_speed);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->heading_of_motion);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->speed_acc);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->heading_acc);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_pvt->PDOP);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->flags3);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->year, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->month, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->day, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->hour, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->min, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->sec, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->valid, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->time_acc, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->nano, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->fix_type, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->flags, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->flags2, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->num_sats, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->lon, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->lat, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->height, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->height_mean_sea_level, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->horizontal_accuracy, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->vertical_accuracy, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->vel_north, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->vel_east, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->vel_down, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->ground_speed, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->heading_of_motion, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->speed_acc, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->heading_acc, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->PDOP, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->flags3, 1);
   /* reserved */
   for (int i = 0; i < 5; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_pvt->reserved1[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->reserved1[i], 1);
   }
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_pvt->heading_vehicle);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_pvt->magnetic_declination);
-  byte += 2;
-  // clang-format off
-  ubx_get_bytes(
-      buff, byte, 2, (u8 *)&msg_nav_pvt->magnetic_declination_accuracy);
-  byte += 2; // NOLINT
-  // clang-format on
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->heading_vehicle, 4);
+  // if (msg_nav_pvt->flags & 0x20)
+  {
+    BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->magnetic_declination, 2);
+    BYTESTREAM_DECODE_BYTES(buff, msg_nav_pvt->magnetic_declination_accuracy,
+                            2);
+  }
   return RC_OK;
 }
 
@@ -452,15 +292,12 @@ ubx_rc ubx_decode_nav_pvt(const uint8_t buff[], ubx_nav_pvt *msg_nav_pvt) {
  * \param msg_nav_velecef UBX nav velecef message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
-                              ubx_nav_velecef *msg_nav_velecef) {
+ubx_rc ubx_decode_nav_velecef_bytestream(swiftnav_bytestream_t *buff,
+                                         ubx_nav_velecef *msg_nav_velecef) {
   assert(msg_nav_velecef);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_velecef->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_velecef->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->msg_id, 1);
 
   if (msg_nav_velecef->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -470,19 +307,13 @@ ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_velecef->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVX);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVY);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->ecefVZ);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_velecef->speed_acc);
-  byte += 4;  // NOLINT
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->ecefVX, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->ecefVY, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->ecefVZ, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_velecef->speed_acc, 4);
 
   return RC_OK;
 }
@@ -493,14 +324,12 @@ ubx_rc ubx_decode_nav_velecef(const uint8_t buff[],
  * \param msg_nav_sat UBX nav sat message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat) {
+ubx_rc ubx_decode_nav_sat_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_nav_sat *msg_nav_sat) {
   assert(msg_nav_sat);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->msg_id, 1);
 
   if (msg_nav_sat->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -510,17 +339,12 @@ ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_sat->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_sat->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->version);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_sat->num_svs);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_sat->reserved1);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->version, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->num_svs, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_sat->reserved1, 2);
 
   for (int i = 0; i < msg_nav_sat->num_svs; i++) {
     if (i >= NAV_DATA_MAX_COUNT) {
@@ -529,20 +353,13 @@ ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat) {
 
     ubx_nav_sat_data *data = &msg_nav_sat->data[i];
 
-    ubx_get_bytes(buff, byte, 1, (u8 *)&data->gnss_id);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&data->sv_id);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&data->cno);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 1, (u8 *)&data->elev);
-    byte += 1;
-    ubx_get_bytes(buff, byte, 2, (u8 *)&data->azim);
-    byte += 2;
-    ubx_get_bytes(buff, byte, 2, (u8 *)&data->pr_res);
-    byte += 2;
-    ubx_get_bytes(buff, byte, 4, (u8 *)&data->flags);
-    byte += 4;
+    BYTESTREAM_DECODE_BYTES(buff, data->gnss_id, 1);
+    BYTESTREAM_DECODE_BYTES(buff, data->sv_id, 1);
+    BYTESTREAM_DECODE_BYTES(buff, data->cno, 1);
+    BYTESTREAM_DECODE_BYTES(buff, data->elev, 1);
+    BYTESTREAM_DECODE_BYTES(buff, data->azim, 2);
+    BYTESTREAM_DECODE_BYTES(buff, data->pr_res, 2);
+    BYTESTREAM_DECODE_BYTES(buff, data->flags, 4);
   }
 
   return RC_OK;
@@ -554,15 +371,12 @@ ubx_rc ubx_decode_nav_sat(const uint8_t buff[], ubx_nav_sat *msg_nav_sat) {
  * \param msg_nav_status UBX nav status message
  * \return UBX return code
  */
-ubx_rc ubx_decode_nav_status(const uint8_t buff[],
-                             ubx_nav_status *msg_nav_status) {
+ubx_rc ubx_decode_nav_status_bytestream(swiftnav_bytestream_t *buff,
+                                        ubx_nav_status *msg_nav_status) {
   assert(msg_nav_status);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->msg_id, 1);
 
   if (msg_nav_status->class_id != UBX_CLASS_NAV) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -572,23 +386,15 @@ ubx_rc ubx_decode_nav_status(const uint8_t buff[],
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_nav_status->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->fix_type);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->status_flags);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->fix_status);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_nav_status->status_flags_ext);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->ttff_ms);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_nav_status->msss);
-  byte += 4;  // NOLINT
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->fix_type, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->status_flags, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->fix_status, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->status_flags_ext, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->ttff_ms, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_nav_status->msss, 4);
 
   return RC_OK;
 }
@@ -599,15 +405,12 @@ ubx_rc ubx_decode_nav_status(const uint8_t buff[],
  * \param ubx_mga_gps_eph UBX mga gps eph message
  * \return UBX return code
  */
-ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],
-                              ubx_mga_gps_eph *msg_mga_gps_eph) {
+ubx_rc ubx_decode_mga_gps_eph_bytestream(swiftnav_bytestream_t *buff,
+                                         ubx_mga_gps_eph *msg_mga_gps_eph) {
   assert(msg_mga_gps_eph);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->msg_id, 1);
 
   if (msg_mga_gps_eph->class_id != 0x13) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -617,75 +420,43 @@ ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->length, 2);
 
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->msg_type);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->version);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->sat_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->msg_type, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->version, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->sat_id, 1);
   /* reserved */
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->reserved1);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->fit_interval);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->ura_index);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->sat_health);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->tgd);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->iodc);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->toc);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->reserved1, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->fit_interval, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->ura_index, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->sat_health, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->tgd, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->iodc, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->toc, 2);
   /* reserved */
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->reserved2);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->af2);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->af1);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->af0);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->crs);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->delta_N);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->m0);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->cuc);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->cus);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->e);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->sqrt_A);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->toe);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->cic);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->omega0);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->cis);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->crc);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->i0);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->omega);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_mga_gps_eph->omega_dot);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_mga_gps_eph->i_dot);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->reserved2, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->af2, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->af1, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->af0, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->crs, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->delta_N, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->m0, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->cuc, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->cus, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->e, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->sqrt_A, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->toe, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->cic, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->omega0, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->cis, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->crc, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->i0, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->omega, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->omega_dot, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->i_dot, 2);
   /* reserved */
   for (int i = 0; i < 2; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_mga_gps_eph->reserved3[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_mga_gps_eph->reserved3[i], 1);
   }
 
   return RC_OK;
@@ -697,15 +468,12 @@ ubx_rc ubx_decode_mga_gps_eph(const uint8_t buff[],
  * \param ubx_rxm_sfrbx UBX rxm sfrbx message
  * \return UBX return code
  */
-ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[],
-                            ubx_rxm_sfrbx *msg_rxm_sfrbx) {
+ubx_rc ubx_decode_rxm_sfrbx_bytestream(swiftnav_bytestream_t *buff,
+                                       ubx_rxm_sfrbx *msg_rxm_sfrbx) {
   assert(msg_rxm_sfrbx);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->msg_id, 1);
 
   if (msg_rxm_sfrbx->class_id != 0x02) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -715,28 +483,23 @@ ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[],
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_rxm_sfrbx->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->length, 2);
 
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->gnss_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->sat_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->reserved1);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->freq_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->num_words);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->channel);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->version);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_rxm_sfrbx->reserved2);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->gnss_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->sat_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->reserved1, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->freq_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->num_words, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->channel, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->version, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->reserved2, 1);
+
+  if (msg_rxm_sfrbx->num_words > UBX_RXM_SFRBX_MAX_DATA_WORDS) {
+    return RC_INVALID_MESSAGE;
+  }
+
   for (int i = 0; i < msg_rxm_sfrbx->num_words; i++) {
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_rxm_sfrbx->data_words[i]);
-    byte += 4;
+    BYTESTREAM_DECODE_BYTES(buff, msg_rxm_sfrbx->data_words[i], 4);
   }
 
   return RC_OK;
@@ -748,14 +511,12 @@ ubx_rc ubx_decode_rxm_sfrbx(const uint8_t buff[],
  * \param msg_esf_ins UBX esf ins message
  * \return UBX return code
  */
-ubx_rc ubx_decode_esf_ins(const uint8_t buff[], ubx_esf_ins *msg_esf_ins) {
+ubx_rc ubx_decode_esf_ins_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_esf_ins *msg_esf_ins) {
   assert(msg_esf_ins);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->msg_id, 1);
 
   if (msg_esf_ins->class_id != UBX_CLASS_ESF) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -765,31 +526,21 @@ ubx_rc ubx_decode_esf_ins(const uint8_t buff[], ubx_esf_ins *msg_esf_ins) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_ins->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->bitfield0);
-  byte += 4;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->bitfield0, 4);
 
   for (int i = 0; i < 4; i++) {
-    ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_ins->reserved1[i]);
-    byte += 1;
+    BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->reserved1[i], 1);
   }
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->i_tow);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->x_ang_rate);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->y_ang_rate);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->z_ang_rate);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->x_accel);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->y_accel);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_ins->z_accel);
-  byte += 4;  // NOLINT
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->i_tow, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->x_ang_rate, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->y_ang_rate, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->z_ang_rate, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->x_accel, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->y_accel, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_ins->z_accel, 4);
 
   return RC_OK;
 }
@@ -800,14 +551,12 @@ ubx_rc ubx_decode_esf_ins(const uint8_t buff[], ubx_esf_ins *msg_esf_ins) {
  * \param msg_esf_meas UBX esf meas message
  * \return UBX return code
  */
-ubx_rc ubx_decode_esf_meas(const uint8_t buff[], ubx_esf_meas *msg_esf_meas) {
+ubx_rc ubx_decode_esf_meas_bytestream(swiftnav_bytestream_t *buff,
+                                      ubx_esf_meas *msg_esf_meas) {
   assert(msg_esf_meas);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_meas->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_meas->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->msg_id, 1);
 
   if (msg_esf_meas->class_id != UBX_CLASS_ESF) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -817,26 +566,20 @@ ubx_rc ubx_decode_esf_meas(const uint8_t buff[], ubx_esf_meas *msg_esf_meas) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->length, 2);
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->time_tag);
-  byte += 4;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->flags);
-  byte += 2;
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_meas->id);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->time_tag, 4);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->flags, 2);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->id, 2);
 
   u8 num_meas = (msg_esf_meas->flags >> 11) & 0x1F;
   for (int i = 0; i < num_meas; i++) {
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->data[i]);
-    byte += 4;
+    BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->data[i], 4);
   }
 
   bool has_calib = msg_esf_meas->flags & 0x8;
   if (has_calib) {
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_meas->calib_tag);
-    byte += 4;  // NOLINT
+    BYTESTREAM_DECODE_BYTES(buff, msg_esf_meas->calib_tag, 4);
   }
 
   return RC_OK;
@@ -848,14 +591,12 @@ ubx_rc ubx_decode_esf_meas(const uint8_t buff[], ubx_esf_meas *msg_esf_meas) {
  * \param msg_esf_raw UBX esf raw message
  * \return UBX return code
  */
-ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw) {
+ubx_rc ubx_decode_esf_raw_bytestream(swiftnav_bytestream_t *buff,
+                                     ubx_esf_raw *msg_esf_raw) {
   assert(msg_esf_raw);
 
-  uint16_t byte = 0;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_raw->class_id);
-  byte += 1;
-  ubx_get_bytes(buff, byte, 1, (u8 *)&msg_esf_raw->msg_id);
-  byte += 1;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->class_id, 1);
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->msg_id, 1);
 
   if (msg_esf_raw->class_id != UBX_CLASS_ESF) {
     return RC_MESSAGE_TYPE_MISMATCH;
@@ -865,20 +606,18 @@ ubx_rc ubx_decode_esf_raw(const uint8_t buff[], ubx_esf_raw *msg_esf_raw) {
     return RC_MESSAGE_TYPE_MISMATCH;
   }
 
-  ubx_get_bytes(buff, byte, 2, (u8 *)&msg_esf_raw->length);
-  byte += 2;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->length, 2);
   int num_measurements = (msg_esf_raw->length - 4) / 8;
-  assert(num_measurements <= ESF_DATA_MAX_COUNT);
+  if (num_measurements > ESF_DATA_MAX_COUNT) {
+    return RC_INVALID_MESSAGE;
+  }
 
-  ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_raw->msss);
-  byte += 4;
+  BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->msss, 4);
 
   for (int i = 0; i < num_measurements; i++) {
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_raw->data[i]);
-    byte += 4;
+    BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->data[i], 4);
 
-    ubx_get_bytes(buff, byte, 4, (u8 *)&msg_esf_raw->sensor_time_tag[i]);
-    byte += 4;
+    BYTESTREAM_DECODE_BYTES(buff, msg_esf_raw->sensor_time_tag[i], 4);
   }
 
   return RC_OK;

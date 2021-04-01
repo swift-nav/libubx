@@ -12,9 +12,10 @@ add_library(ubx
   )
 
 target_link_libraries(ubx m swiftnav)
-target_include_directories(ubx PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(ubx PUBLIC ${PROJECT_SOURCE_DIR}/include
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 swift_set_language_standards(ubx)
-swift_set_compile_options(ubx REMOVE -Wconversion)
+swift_set_compile_options(ubx ADD -pedantic REMOVE -Wconversion)
 
 install(TARGETS ubx DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${libubx_HEADERS} DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/ubx)

@@ -52,6 +52,9 @@ typedef enum ubx_rc_e {
 #define UBX_CLASS_MON 0x0A
 #define UBX_MSG_MON_HW 0x09
 
+/* Max number of data words in RXM-SFRBX */
+#define UBX_RXM_SFRBX_MAX_DATA_WORDS 10
+
 typedef struct {
   uint8_t class_id;
   uint8_t msg_id;
@@ -269,7 +272,7 @@ typedef struct {
   uint8_t channel;
   uint8_t version;
   uint8_t reserved2;
-  uint32_t data_words[10];
+  uint32_t data_words[UBX_RXM_SFRBX_MAX_DATA_WORDS];
 } ubx_rxm_sfrbx;
 
 typedef enum ESF_DATA_TYPE {
