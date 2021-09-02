@@ -18,3 +18,12 @@ swift_add_test(test_libubx
 
 swift_set_language_standards(test_libubx)
 swift_set_compile_options(test_libubx REMOVE -Wconversion)
+
+swift_add_test(test_libubx_pedantic
+  UNIT_TEST
+  SRCS
+    check_pedantic.cc
+  LINK
+    ubx
+)
+swift_set_compile_options(test_libubx_pedantic ADD -pedantic)

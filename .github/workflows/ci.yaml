@@ -45,3 +45,19 @@ jobs:
           TEST_SUITE: ${{ matrix.test_suite }}
         run: |
           bash ./ci-build.sh
+
+  windows-vs-2019:
+    name: Windows VS 2019
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          ssh-key: ${{ secrets.SSH_KEY }}
+      - name: Configure
+        run: cmake -G "Visual Studio 16 2019" -S c -B build
+      - name: Build
+        run: cmake --build build --target ALL_BUILD
+      - name: Test
+        run: cmake --build build --target do-all-tests

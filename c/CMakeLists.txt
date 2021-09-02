@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.3)
 project(libubx)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake" "${CMAKE_CURRENT_LIST_DIR}/cmake/common")
@@ -9,16 +9,12 @@ include(SwiftCmakeOptions)
 include(TestTargets)
 include(LanguageStandards)
 include(CompileOptions)
-
-set(disable_tests FALSE)
-if(MSVC)
-  message(STATUS "MSVC detected, skipping unit tests")
-  set(disable_tests TRUE)
-endif()
+include(SwiftTargets)
+include(CodeCoverage)
+add_code_coverage_all_targets()
 
 swift_create_project_options(
         HAS_TESTS
-        DISABLE_TEST_COMPONENTS ${disable_tests}
         TEST_PACKAGES "Check"
 )
 
@@ -28,7 +24,9 @@ include(ClangFormat)
 swift_setup_clang_format()
 
 include(ClangTidy)
-swift_setup_clang_tidy(PATTERNS "src/*.c")
+
+include(CheckAttributes)
+create_check_attributes_target()
 
 add_subdirectory (src)
 
@@ -36,3 +34,5 @@ if(libubx_BUILD_TESTS)
   add_subdirectory (test)
 endif()
 
+swift_validate_targets()
+swift_create_clang_tidy_targets()
